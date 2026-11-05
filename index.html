@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>LiveTV-Player – Prototypen Audio und Untertitel</title>
+<title>Deine Meinung zählt – waipu.tv Audio- und Untertiteleinstellungen</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&amp;display=swap" rel="stylesheet">
 <style>
@@ -12,6 +12,7 @@ html, body { margin: 0; height: 100%; background: #0b1118; color: #ffffff; font-
 .wrap { width: 100%; max-width: 1240px; display: flex; flex-direction: column; gap: 40px; }
 .eyebrow { font-size: 18px; font-weight: 600; color: #7ab8ff; margin: 0 0 12px; }
 h1 { margin: 0; font-size: clamp(32px, 4vw, 52px); font-weight: 700; line-height: 1.15; }
+.lead { margin: 16px 0 0; max-width: 70ch; font-size: 20px; line-height: 1.6; color: #c3cdd8; }
 .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
 .card { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 120px; padding: 24px 32px; box-sizing: border-box; border: 3px solid #2a3846; border-radius: 14px; background: #151f2b; color: #ffffff; font-family: inherit; text-align: left; cursor: pointer; }
 .card:hover, .card:focus-visible { border-color: #ffffff; outline: none; }
@@ -21,10 +22,22 @@ h1 { margin: 0; font-size: clamp(32px, 4vw, 52px); font-weight: 700; line-height
 .tasks { border-radius: 14px; background: #151f2b; padding: 24px 32px; }
 .tasks h2 { margin: 0 0 12px; font-size: 22px; font-weight: 700; }
 .tasks ol { margin: 0; padding-left: 1.4em; font-size: 19px; line-height: 1.6; color: #d5dbe2; }
-.tasks p { margin: 16px 0 0; font-size: 19px; line-height: 1.6; color: #d5dbe2; max-width: 70ch; }
-.foot { margin: 0; font-size: 16px; line-height: 1.6; color: #aab5c1; }
+.note { margin: 0; border-left: 4px solid #4da3ff; border-radius: 10px; background: #172338; padding: 20px 28px; font-size: 19px; line-height: 1.6; color: #d5dbe2; }
+.note strong { color: #ffffff; }
+.tasks ul { margin: 6px 0 4px; padding-left: 1.2em; }
+.feedback { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px 32px; border-radius: 14px; background: #151f2b; padding: 24px 32px; }
+.feedback p { margin: 0; max-width: 60ch; font-size: 19px; line-height: 1.6; color: #d5dbe2; }
+.feedback strong { color: #ffffff; }
+.cta { display: inline-flex; align-items: center; padding: 14px 30px; border: 2px solid #4d8fd9; border-radius: 30px; background: #1d4a86; color: #ffffff; font-size: 18px; font-weight: 700; text-decoration: none; }
+.cta:hover, .cta:focus-visible { background: #2558a0; outline: 3px solid #ffffff; outline-offset: 2px; }
 #stageWrap { position: fixed; inset: 0; display: none; background: #05080c; }
 #stage { position: absolute; left: 50%; top: 50%; width: 2280px; height: 1080px; transform-origin: center center; }
+#stageOverlay { position: absolute; left: 50%; top: 50%; width: 2280px; height: 1080px; transform-origin: center center; pointer-events: none; }
+#splash { position: absolute; left: 960px; top: 540px; transform: translate(-50%, -50%); display: flex; align-items: center; gap: 18px; padding: 20px 40px; border-radius: 44px; background: rgba(11,17,24,0.85); border: 1px solid rgba(255,255,255,0.15); white-space: nowrap; opacity: 0; transition: opacity 400ms ease; }
+#splash.show { opacity: 1; transition: opacity 250ms ease; }
+.splash-pre { font-size: 34px; color: #c3cad3; }
+.splash-name { font-size: 34px; font-weight: 700; color: #ffffff; }
+#stage ::-webkit-scrollbar { width: 0; height: 0; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
@@ -32,27 +45,31 @@ h1 { margin: 0; font-size: clamp(32px, 4vw, 52px); font-weight: 700; line-height
 <main id="landing">
 <div class="wrap">
 <div>
-<p class="eyebrow">LiveTV-Player · Audio und Untertitel</p>
-<h1>Welchen Prototyp möchtest du starten?</h1>
+<p class="eyebrow">waipu.tv – Audio- und Untertiteleinstellungen</p>
+<h1>Deine Meinung zählt</h1>
+<p class="lead">Wir möchten die Einstellungen für Tonspuren und Untertitel im LiveTV verbessern und haben dafür zwei Varianten gebaut. Probiere beide aus und erzähl uns, wie sie sich für dich anfühlen. Das dauert etwa 10 Minuten. Es gibt kein Richtig oder Falsch: Wir testen die App, nicht dich.</p>
 </div>
-<div class="cards" id="cards">
-<button type="button" class="card" data-proto="1"><span class="card-title">Prototyp 1</span><span class="pill">Starten</span></button>
-<button type="button" class="card" data-proto="2"><span class="card-title">Prototyp 2</span><span class="pill">Starten</span></button>
-</div>
+<p class="note"><strong>Bitte am Computer öffnen.</strong> Bedienen kannst du die Varianten mit der Fernbedienung am Bildschirmrand oder mit den Pfeiltasten, Enter und Backspace. Mit F11 (am Mac: Ctrl + Cmd + F) wechselst du in den Vollbildmodus. Zurück auf diese Seite kommst du über den Button „Startseite“ unter der Fernbedienung oder mit deren Home-Taste.</p>
 <section class="tasks" aria-labelledby="tasks-h">
-<h2 id="tasks-h">Probiere Folgendes in beiden Prototypen aus:</h2>
+<h2 id="tasks-h">So geht’s:</h2>
 <ol>
-<li>Stelle Untertitel, eine andere Tonspur oder Dolby-Ton ein (Menü „Audio und Untertitel“).</li>
-<li>Wechsle danach durch mehrere Sender, z. B. bis Sender 015 und zurück.</li>
-<li>Achte dabei auf die Kennzeichnungen neben dem Sendernamen, etwa UT oder DD.</li>
-<li>Öffne das Menü auf verschiedenen Sendern erneut.</li>
+<li>Starte eine der beiden Varianten. Die Reihenfolge ist egal.</li>
+<li>Stell dir vor, du schaust ganz normal fern: Stelle Ton und Untertitel nach deinem Geschmack ein, wechsle ein paar Sender und achte darauf, wie die Kennzeichnungen neben dem Sendernamen und das Menü „Audio und Untertitel“ reagieren.</li>
+<li>Teste danach die andere Variante genauso.</li>
+<li>Erzähl uns im Feedbackformular, was dir aufgefallen ist.</li>
 </ol>
-<p>Erzähle uns danach, was dir aufgefallen ist. War dir zum Beispiel immer klar, was gerade läuft und was deine gespeicherte Präferenz ist? Sind alle Kennzeichnungen bezüglich Tonspuren und Untertitel eingängig gewesen?</p>
 </section>
-<p class="foot">Bedienung: Fernbedienung am Rand oder Pfeiltasten, Enter, Backspace · Vollbild mit F11<br>Zurück auf diese Übersicht per Button „Startseite“ über der Fernbedienung</p>
+<div class="cards" id="cards">
+<button type="button" class="card" data-proto="1"><span class="card-title" style="color: #b48cff">Variante Lila</span><span class="pill">Starten</span></button>
+<button type="button" class="card" data-proto="2"><span class="card-title" style="color: #f39a45">Variante Orange</span><span class="pill">Starten</span></button>
+</div>
+<section class="feedback" aria-labelledby="fb-h">
+<p id="fb-h"><strong>Fertig mit beiden Varianten?</strong> Dann erzähl uns in unserem kurzen Formular (ca. 5 Minuten), was dir aufgefallen ist.</p>
+<a class="cta" href="https://forms.gle/tu94FU4XvJjAuQZh7" target="_blank" rel="noopener">Zum Feedbackformular</a>
+</section>
 </div>
 </main>
-<div id="stageWrap" aria-live="off"><div id="stage"></div></div>
+<div id="stageWrap" role="region" aria-label="Prototyp"><div id="stage"></div><div id="stageOverlay"><div id="splash" role="status" aria-live="polite"><span class="splash-pre">Du testest jetzt:</span><span id="splashName" class="splash-name"></span></div></div></div>
 
 <template id="tpl-1"><div ref="{{ rootRef }}" tabIndex="0" onKeyDown="{{ onKey }}" onMouseEnter="{{ onEnter }}" aria-label="LiveTV-Player. Bedienung per virtueller Fernbedienung oder mit Pfeiltasten, Enter und Backspace." style="width: 2280px; height: 1080px; display: flex; background: #11151b; color: #ffffff; font-family: 'Open Sans', Arial, sans-serif; outline: none">
 <div style="width: 1920px; height: 1080px; position: relative; overflow: hidden; flex-shrink: 0; background: {{ videoBg }}">
@@ -67,7 +84,7 @@ h1 { margin: 0; font-size: clamp(32px, 4vw, 52px); font-weight: 700; line-height
 </sc-if>
 
 <sc-if value="{{ showZap }}" hint-placeholder-val="{{ false }}">
-<div aria-live="polite" style="position: absolute; left: 0; top: 0; right: 0; height: 560px; background: linear-gradient(rgba(8,12,18,0.88), rgba(8,12,18,0.6) 60%, rgba(8,12,18,0)); pointer-events: none">
+<div data-ov="zap" aria-live="polite" style="position: absolute; left: 0; top: 0; right: 0; height: 560px; background: linear-gradient(rgba(8,12,18,0.88), rgba(8,12,18,0.6) 60%, rgba(8,12,18,0)); pointer-events: none">
 <div style="position: absolute; left: 204px; top: 62px; width: 1340px; display: flex; flex-direction: column">
 <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap">
 <span style="font-size: 30px; font-weight: 400">{{ chNum }} | {{ chName }}</span>
@@ -84,7 +101,7 @@ h1 { margin: 0; font-size: clamp(32px, 4vw, 52px); font-weight: 700; line-height
 </sc-if>
 
 <sc-if value="{{ showOverlay }}" hint-placeholder-val="{{ false }}">
-<div style="position: absolute; inset: 0; background: rgba(8,12,18,0.62)">
+<div data-ov="controls" style="position: absolute; inset: 0; background: rgba(8,12,18,0.62)">
 <button type="button" aria-label="Zurück" onClick="{{ hideOverlay }}" style="position: absolute; left: 96px; top: 64px; width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 32px; background: transparent; color: #ffffff; cursor: pointer">
 <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12H4"></path><path d="M10 6l-6 6 6 6"></path></svg>
 </button>
@@ -101,7 +118,7 @@ h1 { margin: 0; font-size: clamp(32px, 4vw, 52px); font-weight: 700; line-height
 <p style="margin: 8px 0 0; font-size: 28px; font-weight: 600">{{ genre }}</p>
 <p style="margin: 8px 0 0; font-size: 28px; font-weight: 600; color: {{ accent }}">{{ timeLine }}</p>
 <sc-if value="{{ showInfo }}" hint-placeholder-val="{{ false }}">
-<p style="margin: 24px 0 0; max-width: 1040px; font-size: 24px; line-height: 1.5; color: #d5dbe2">[Beschreibungstext der laufenden Sendung, zwei bis drei Zeilen]</p>
+<p style="margin: 24px 0 0; max-width: 1040px; font-size: 24px; line-height: 1.5; color: #d5dbe2">{{ desc }}</p>
 </sc-if>
 </div>
 
@@ -314,7 +331,7 @@ Ihre Einstellung ist aktiv</span>
 <p style="margin: 0; font-size: 26px; font-weight: 600">{{ subtitle }}</p>
 <p style="margin: 0; font-size: 26px; font-weight: 600">{{ genre }}</p>
 <p style="margin: 0; font-size: 26px; font-weight: 600; color: {{ accent }}">{{ timeLine }}</p>
-<p style="margin: 18px 0 0; font-size: 24px; line-height: 1.55; color: #d5dbe2">[Beschreibungstext der laufenden Sendung: Inhalt, Mitwirkende und weitere Details, zwei bis vier Zeilen.]</p>
+<p style="margin: 18px 0 0; font-size: 24px; line-height: 1.55; color: #d5dbe2">{{ desc }}</p>
 <button type="button" onClick="{{ closeInfo }}" style="align-self: flex-start; margin-top: 26px; padding: 14px 34px; border: 0; border-radius: 28px; background: #ffffff; color: #0b1118; font-family: 'Open Sans', Arial, sans-serif; font-size: 22px; font-weight: 700; cursor: pointer">Schließen</button>
 </div>
 </div>
@@ -331,9 +348,9 @@ Ihre Einstellung ist aktiv</span>
 </sc-if>
 </div>
 
-<div style="width: 360px; height: 1080px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; background: #11151b">
-<button type="button" onClick="{{ exitProto }}" style="display: flex; align-items: center; gap: 10px; margin-bottom: 18px; padding: 14px 30px 14px 24px; border: 2px solid #4d8fd9; border-radius: 30px; background: #1d4a86; color: #ffffff; font-family: 'Open Sans', Arial, sans-serif; font-size: 20px; font-weight: 700; cursor: pointer"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11l8-7 8 7"></path><path d="M6 10v10h12V10"></path></svg>Startseite</button>
-<span style="font-size: 22px; font-weight: 700; color: #ffffff">Prototyp 1</span>
+<div style="width: 360px; height: 1080px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; position: relative; background: #11151b">
+<div style="position: absolute; top: 0; left: 0; right: 0; padding: 22px 16px; text-align: center; border-bottom: 3px solid #b48cff; color: #b48cff; font-size: 24px; font-weight: 800; letter-spacing: 0.01em">Variante Lila</div>
+<div style="flex: 1; margin-bottom: -22px" aria-hidden="true"></div>
 <div role="group" aria-label="Virtuelle Fernbedienung" style="width: 196px; padding: 44px 0 48px; box-sizing: border-box; border-radius: 52px; background: #1d2027; border: 1px solid rgba(255,255,255,0.12); display: flex; flex-direction: column; align-items: center; gap: 28px">
 <div style="position: relative; width: 164px; height: 164px; border-radius: 50%; background: #2b2f37">
 <button type="button" aria-label="Hoch" onClick="{{ rc.up }}" style="position: absolute; display: flex; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 10px; background: transparent; color: #ffffff; cursor: pointer; left: 52px; top: 4px; width: 60px; height: 40px"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"></path></svg></button>
@@ -359,6 +376,7 @@ Ihre Einstellung ist aktiv</span>
 </div>
 </div>
 <p style="margin: 0; font-size: 15px; line-height: 1.5; color: #9aa3ad; text-align: center">Oder per Tastatur:<br>Pfeile · Enter · Backspace</p>
+<div style="flex: 1; margin-top: -22px; align-self: stretch; display: flex; align-items: center; justify-content: center"><button type="button" onClick="{{ exitProto }}" style="display: flex; align-items: center; padding: 14px 30px; border: 2px solid #4d8fd9; border-radius: 30px; background: #1d4a86; color: #ffffff; font-family: 'Open Sans', Arial, sans-serif; font-size: 20px; font-weight: 700; cursor: pointer">Startseite</button></div>
 </div>
 </div></template>
 <template id="tpl-2"><div ref="{{ rootRef }}" tabIndex="0" onKeyDown="{{ onKey }}" onMouseEnter="{{ onEnter }}" aria-label="LiveTV-Player. Bedienung per virtueller Fernbedienung oder mit Pfeiltasten, Enter und Backspace." style="width: 2280px; height: 1080px; display: flex; background: #11151b; color: #ffffff; font-family: 'Open Sans', Arial, sans-serif; outline: none">
@@ -374,7 +392,7 @@ Ihre Einstellung ist aktiv</span>
 </sc-if>
 
 <sc-if value="{{ showZap }}" hint-placeholder-val="{{ false }}">
-<div aria-live="polite" style="position: absolute; left: 0; top: 0; right: 0; height: 560px; background: linear-gradient(rgba(8,12,18,0.88), rgba(8,12,18,0.6) 60%, rgba(8,12,18,0)); pointer-events: none">
+<div data-ov="zap" aria-live="polite" style="position: absolute; left: 0; top: 0; right: 0; height: 560px; background: linear-gradient(rgba(8,12,18,0.88), rgba(8,12,18,0.6) 60%, rgba(8,12,18,0)); pointer-events: none">
 <div style="position: absolute; left: 204px; top: 62px; width: 1340px; display: flex; flex-direction: column">
 <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap">
 <span style="font-size: 30px; font-weight: 400">{{ chNum }} | {{ chName }}</span>
@@ -391,7 +409,7 @@ Ihre Einstellung ist aktiv</span>
 </sc-if>
 
 <sc-if value="{{ showOverlay }}" hint-placeholder-val="{{ false }}">
-<div style="position: absolute; inset: 0; background: rgba(8,12,18,0.62)">
+<div data-ov="controls" style="position: absolute; inset: 0; background: rgba(8,12,18,0.62)">
 <button type="button" aria-label="Zurück" onClick="{{ hideOverlay }}" style="position: absolute; left: 96px; top: 64px; width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 32px; background: transparent; color: #ffffff; cursor: pointer">
 <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12H4"></path><path d="M10 6l-6 6 6 6"></path></svg>
 </button>
@@ -408,7 +426,7 @@ Ihre Einstellung ist aktiv</span>
 <p style="margin: 8px 0 0; font-size: 28px; font-weight: 600">{{ genre }}</p>
 <p style="margin: 8px 0 0; font-size: 28px; font-weight: 600; color: {{ accent }}">{{ timeLine }}</p>
 <sc-if value="{{ showInfo }}" hint-placeholder-val="{{ false }}">
-<p style="margin: 24px 0 0; max-width: 1040px; font-size: 24px; line-height: 1.5; color: #d5dbe2">[Beschreibungstext der laufenden Sendung, zwei bis drei Zeilen]</p>
+<p style="margin: 24px 0 0; max-width: 1040px; font-size: 24px; line-height: 1.5; color: #d5dbe2">{{ desc }}</p>
 </sc-if>
 </div>
 
@@ -581,7 +599,7 @@ Senderliste
 <p style="margin: 0; font-size: 26px; font-weight: 600">{{ subtitle }}</p>
 <p style="margin: 0; font-size: 26px; font-weight: 600">{{ genre }}</p>
 <p style="margin: 0; font-size: 26px; font-weight: 600; color: {{ accent }}">{{ timeLine }}</p>
-<p style="margin: 18px 0 0; font-size: 24px; line-height: 1.55; color: #d5dbe2">[Beschreibungstext der laufenden Sendung: Inhalt, Mitwirkende und weitere Details, zwei bis vier Zeilen.]</p>
+<p style="margin: 18px 0 0; font-size: 24px; line-height: 1.55; color: #d5dbe2">{{ desc }}</p>
 <button type="button" onClick="{{ closeInfo }}" style="align-self: flex-start; margin-top: 26px; padding: 14px 34px; border: 0; border-radius: 28px; background: #ffffff; color: #0b1118; font-family: 'Open Sans', Arial, sans-serif; font-size: 22px; font-weight: 700; cursor: pointer">Schließen</button>
 </div>
 </div>
@@ -598,9 +616,9 @@ Senderliste
 </sc-if>
 </div>
 
-<div style="width: 360px; height: 1080px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; background: #11151b">
-<button type="button" onClick="{{ exitProto }}" style="display: flex; align-items: center; gap: 10px; margin-bottom: 18px; padding: 14px 30px 14px 24px; border: 2px solid #4d8fd9; border-radius: 30px; background: #1d4a86; color: #ffffff; font-family: 'Open Sans', Arial, sans-serif; font-size: 20px; font-weight: 700; cursor: pointer"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11l8-7 8 7"></path><path d="M6 10v10h12V10"></path></svg>Startseite</button>
-<span style="font-size: 22px; font-weight: 700; color: #ffffff">Prototyp 2</span>
+<div style="width: 360px; height: 1080px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; position: relative; background: #11151b">
+<div style="position: absolute; top: 0; left: 0; right: 0; padding: 22px 16px; text-align: center; border-bottom: 3px solid #f39a45; color: #f39a45; font-size: 24px; font-weight: 800; letter-spacing: 0.01em">Variante Orange</div>
+<div style="flex: 1; margin-bottom: -22px" aria-hidden="true"></div>
 <div role="group" aria-label="Virtuelle Fernbedienung" style="width: 196px; padding: 44px 0 48px; box-sizing: border-box; border-radius: 52px; background: #1d2027; border: 1px solid rgba(255,255,255,0.12); display: flex; flex-direction: column; align-items: center; gap: 28px">
 <div style="position: relative; width: 164px; height: 164px; border-radius: 50%; background: #2b2f37">
 <button type="button" aria-label="Hoch" onClick="{{ rc.up }}" style="position: absolute; display: flex; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 10px; background: transparent; color: #ffffff; cursor: pointer; left: 52px; top: 4px; width: 60px; height: 40px"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"></path></svg></button>
@@ -626,6 +644,7 @@ Senderliste
 </div>
 </div>
 <p style="margin: 0; font-size: 15px; line-height: 1.5; color: #9aa3ad; text-align: center">Oder per Tastatur:<br>Pfeile · Enter · Backspace</p>
+<div style="flex: 1; margin-top: -22px; align-self: stretch; display: flex; align-items: center; justify-content: center"><button type="button" onClick="{{ exitProto }}" style="display: flex; align-items: center; padding: 14px 30px; border: 2px solid #4d8fd9; border-radius: 30px; background: #1d4a86; color: #ffffff; font-family: 'Open Sans', Arial, sans-serif; font-size: 20px; font-weight: 700; cursor: pointer">Startseite</button></div>
 </div>
 </div></template>
 
@@ -642,7 +661,7 @@ class DCLogic {
 
 const P1 = (function () {
 
-const RAW = 'Das Erste|h|deu qad qks qde|deu|f;ZDF|h|deu qad qks qde|deu|f;RTL|h|deu qde|deu|f;SAT.1|h|deu qde|deu|f;ProSieben|h|deu qde|deu|f;VOX|h|deu qde|deu|f;Kabel Eins|h|deu qde|deu|f;RTLZWEI|h|deu|deu|f;Super RTL|h|deu qde|deu|k;NITRO|h|deu qde|deu|f;sixx|h|deu qde|deu|f;ProSieben MAXX|h|deu qde|deu|f;TELE 5|h|deu||f;3sat|h|deu qad qks qde|deu|d;ARTE|h|deu fra qaa qad|deu fra|d;phoenix|h|deu qaa|deu|n;ZDFneo|h|deu qad qks qde|deu|f;ZDFinfo|h|deu qad qks qde|deu|d;ONE|h|deu qad qks qde|deu|f;tagesschau24|h|deu qad qks qde|deu|n;ARD alpha|h|deu qad qks qde|deu|d;KiKA|h|deu qad qks qde|deu|k;ntv|h|deu||n;WELT|h|deu||n;N24 Doku|h|deu||d;DMAX|h|deu||f;TLC|h|deu||f;SPORT1|h|deu||s;Eurosport 1|h|deu eng||s;WDR Köln|h|deu qad qks qde|deu|f;NDR Hamburg|h|deu qad qks|deu|f;BR Süd|h|deu qad qks qde|deu|f;SWR Baden-Württemberg|h|deu qad qks qde|deu|f;hr fernsehen|h|deu qad qks qde|deu|f;MDR Sachsen|h|deu qad qks qde|deu|f;rbb Berlin|h|deu qad qks qde|deu|f;SR Fernsehen|h|deu qad qks qde|deu|f;13th Street|h|deu eng qde||f;24 TV|h|tur||f;360 TuneBox|h|eng||m;360 TV|h|tur||f;A Haber|h|tur||n;A News|h|eng||n;A Spor|h|tur||s;A2 TV|h|tur||f;Al Jazeera English|h|eng||n;AMSC|h|deu||f;Animal Planet|h|deu eng||d;ATV Avrupa|h|tur||f;AXN Black|h|deu qaa qde||f;AXN White|h|deu qaa qde||f;BBC World News|h|eng||n;Beyaz TV|h|tur||f;Bibel TV|h|deu||f;BR Nord|h|deu qad qks qde|deu|f;CNBC Europe|h|eng||n;CNN International|h|eng||n;CNN Türk|h|tur||n;Comedy Central|h|deu||f;Crime + Action|h|deu||f;Crime + Investigation|h|deu eng qde||d;DAZN 1|h|deu||s;DAZN 2|h|deu||s;DAZN FAST|h|deu||s;DAZN Rise|h|deu||s;Deluxe Dance|h|deu||m;Deluxe Rap|h|deu||m;Deluxe TV|h|deu||m;Deutsches Musik Fernsehen|h|deu||m;DF1|h|deu||f;Discovery|h|deu eng||d;Disney Channel|h|deu qde||k;Diyanet TV|h|tur||f;DocuBox|h|eng||d;DokuSat|h|deu||d;Edge Sport|h|eng||s;eoTV|h|deu||f;eSports1|h|deu eng||s;Euro D|h|tur||f;Euro Star|h|tur||f;euronews|h|deu||n;Eurosport 2|h|deu eng||s;EWTN|h|deu||f;Fashion TV|h|eng||f;FashionBox|h|eng||f;Fast&FunBox|h|eng||f;Fight24|h|deu||s;FightBox|h|eng||s;FilmBox Arthouse|h|eng||f;Fix & Foxi|h|deu||k;Flash Haber|h|eng||n;France 24 English|h|eng|deu|n;Gametoon|h|eng||k;GEO Television|h|deu qaa qde||d;Gute Laune TV|h|eng||m;Habertürk|h|tur||n;HandyStar|h|deu||e;Heimatkanal|h|deu||f;HGTV|h|deu||f;Hope TV|h|deu||f;HSE|h|deu||e;Jukebox|h|deu||m;K-TV|h|deu||f;Kabel Eins Classics|h|deu||f;Kabel Eins Doku|h|deu qde|deu|d;Kanal 7 Avrupa|h|tur||f;Kinowelt|h|deu qaa||f;Landlust|h|deu||d;MDR Sachsen-Anhalt|h|deu qad qks qde|deu|f;MDR Thüringen|h|deu qad qks qde|deu|f;Metal Rocks|h|deu||m;Motorvision|h|deu||s;Movie Music|h|eng||m;MTV|h|deu||m;Music Box 00s|h|zxx||m;Music Box 80s|h|zxx||m;Music Box 90s|h|zxx||m;Music Box Classic|h|zxx||m;Music Box Dance|h|zxx||m;Music Box Hits|h|zxx||m;Naruto|h|deu||k;Nat Geo Wild|h|deu eng qde qen||d;National Geographic|h|deu eng qde qen||d;NDR Bremen|h|deu qad qks|deu|f;NDR Mecklenburg-Vorpommern|h|deu qad qks|deu|f;NDR Niedersachsen|h|deu qad qks qde|deu|f;NDR Schleswig-Holstein|h|deu qad qks|deu|f;NHK World|h|eng||n;Nick Jr.|h|deu eng||k;Nickelodeon|h|deu||k;Planet|h|deu||d;ProSieben FUN|h|deu qaa||f;Quello|h|eng||f;QVC|h|deu||e;rbb Brandenburg|h|deu qad qks qde|deu|f;Red Bull TV|h|deu||s;RiC|h|deu||k;Romance TV|h|deu||f;Rot|h|deu||f;RTL Crime|h|deu qaa qde||f;RTL Living|h|deu qaa qde||f;RTL Passion|h|deu qaa qde||f;RTLup|h|deu qde||f;SAT.1 emotions|h|deu||f;SAT.1 GOLD|h|deu qde|deu|f;Sbl0|h|deu qde||s;Sbl1|h|deu qaa qde||s;Sbl10|h|deu qaa qde||s;Sbl2|h|deu qaa qde||s;Sbl3|h|deu qaa qde||s;Sbl4|h|deu qaa qde||s;Sbl5|h|deu qaa qde||s;Sbl6|h|deu qaa qde||s;Sbl7|h|deu qaa qde||s;Sbl8|h|deu qaa qde||s;Sbl9|h|deu qaa qde||s;Show Türk|h|tur||f;Silverline|h|deu||f;sonnenklar.TV|h|deu||e;SPIEGEL Geschichte|h|deu qde||d;SPIEGEL Wissen|h|deu||d;SPORT1+|h|deu qaa||s;sportdigital|h|deu eng||s;SRF 1|h|deu eng|deu|f;SRF info|h|deu eng qad|deu|n;SRF zwei|h|deu eng|deu|f;Stingray Classica|h|eng||m;SWR Rheinland-Pfalz|h|deu qad qks qde|deu|f;SYFY|h|deu eng qde||f;Tennis Channel|h|eng||s;teve2|h|tur||f;TGRT Belgesel|h|tur||d;TGRT EU|h|tur||f;TGRT Haber|h|tur||n;The HISTORY Channel|h|deu eng qde||d;TNT Comedy|h|deu eng||f;TNT Film|h|deu eng||f;TNT Serie|h|deu eng||f;Toggo plus|h|deu||k;Top Filme|h|deu||f;Top Sci-Fi|h|deu||f;Top True Crime|h|deu||f;TR Fox|h|tur||f;Travelxp|h|deu||f;TRT 1|h|tur||f;TRT Arabi|h|ara||f;TRT Avaz|h|tur||f;TRT Belgesel|h|tur||d;TRT Haber|h|tur||n;TRT Kurdî|h|kur||f;TRT Müzik|h|tur||m;TRT Spor|h|tur||s;TRT Türk|h|tur||f;TRT World|h|eng||n;TRT Çocuk|h|tur||k;TV 4|h|eng||f;tv100|h|tur||n;TV8 International|h|tur||f;Universal TV|h|deu eng qde||f;VOXup|h|deu qde||f;watch4crime|h|deu||f;WDR Aachen|h|deu qad qks|deu|f;WDR Bielefeld|h|deu qad qks|deu|f;WDR Bonn|h|deu qad qks|deu|f;WDR Dortmund|h|deu qad qks|deu|f;WDR Duisburg|h|deu qad qks|deu|f;WDR Düsseldorf|h|deu qad qks|deu|f;WDR Essen|h|deu qad qks|deu|f;WDR Münster|h|deu qad qks|deu|f;WDR Siegen|h|deu qad qks|deu|f;WDR Wuppertal|h|deu qad qks|deu|f;wedo sports|h|deu||s;Welt der Wunder|h|deu||d;wir24|h|deu||f;Xite Hits|h|eng||m;Xite R&B|h|eng||m;Alles was zählt|s|deu||f;Bauer sucht Frau|s|deu||f;Comedy Central|s|deu||f;Deluxe TV|s|deu||m;Disney Channel|s|deu||k;DMAX|s|deu||f;Ekin Türk|s|tur||f;Eurosport 1|s|deu eng||s;GEO Television|s|deu qaa||d;Goldstar TV|s|deu||m;Hund Katze Maus|s|deu||f;Kabel Eins|s|deu||f;Kabel Eins Doku|s|deu|deu|d;Melodie TV|s|deu||m;MTV|s|deu||m;N24 Doku|s|deu||d;Nickelodeon|s|deu||k;Nicktoons|s|deu eng||k;NITRO|s|deu|deu|f;ntv|s|deu||n;ProSieben|s|deu qde|deu|f;ProSieben MAXX|s|deu||f;RTL|s|deu qde|deu|f;RTL Comedy|s|deu||f;RTL Crime|s|deu qaa||f;RTL Haus & Garten|s|deu||d;RTL Living|s|deu qaa||f;RTL Passion|s|deu qaa||f;RTL Shine|s|deu||f;RTLup|s|deu||f;RTLZWEI|s|deu||f;SAT.1|s|deu qde|deu|f;SAT.1 GOLD|s|deu|deu|f;Schlager Deluxe|s|deu||m;Shopping Queen|s|deu||e;Showmax|s|tur||f;sixx|s|deu|deu|f;SPORT1|s|deu||s;Super RTL|s|deu|deu|k;TELE 5|s|deu||f;TLC|s|deu||f;Toggo plus|s|deu||k;TV5|s|tur||f;VOX|s|deu|deu|f;VOXup|s|deu||f;WELT|s|deu||n;wetter.com TV|s|deu||f;EXA Test 10|h|deu||f;EXA Test 11|h|deu||f;EXA Test 12|h|deu qde||f;EXA Test 13|h|deu||f;EXA Test 14|h|deu||f;EXA Test 15|h|deu||f;EXA Test 1|s|deu||f;EXA Test 2|h|deu||f;EXA Test 4|h|deu qde||f;EXA Test 5|h|deu||f;EXA Test 6|h|deu||f;EXA Test 8|h|deu qad qks qde||f;EXA Test 9|h|deu qde||f';
+const RAW = 'Das Erste|h|deu qad qks qde|deu|f;ZDF|h|deu qad qks qde|deu|f;RTL|h|deu qde|deu|f;TELE 5|h|deu||f;ProSieben|h|deu qde|deu|f;ARTE|h|deu fra qaa qad|deu fra|d;RTLZWEI|h|deu|deu|f;SAT.1|h|deu qde|deu|f;ntv|h|deu||n;VOX|h|deu qde|deu|f;13th Street|h|deu eng qde||f;Kabel Eins|h|deu qde|deu|f;DMAX|h|deu||f;3sat|h|deu qad qks qde|deu|d;phoenix|h|deu qaa|deu|n;CNN International|h|eng||n;Super RTL|h|deu qde|deu|k;NITRO|h|deu qde|deu|f;sixx|h|deu qde|deu|f;ProSieben MAXX|h|deu qde|deu|f;ZDFneo|h|deu qad qks qde|deu|f;ZDFinfo|h|deu qad qks qde|deu|d;ONE|h|deu qad qks qde|deu|f;tagesschau24|h|deu qad qks qde|deu|n;ARD alpha|h|deu qad qks qde|deu|d;KiKA|h|deu qad qks qde|deu|k;WELT|h|deu||n;N24 Doku|h|deu||d;TLC|h|deu||f;SPORT1|h|deu||s;Eurosport 1|h|deu eng||s;WDR Köln|h|deu qad qks qde|deu|f;NDR Hamburg|h|deu qad qks|deu|f;BR Süd|h|deu qad qks qde|deu|f;SWR Baden-Württemberg|h|deu qad qks qde|deu|f;hr fernsehen|h|deu qad qks qde|deu|f;MDR Sachsen|h|deu qad qks qde|deu|f;rbb Berlin|h|deu qad qks qde|deu|f;SR Fernsehen|h|deu qad qks qde|deu|f;24 TV|h|tur||f;360 TuneBox|h|eng||m;360 TV|h|tur||f;A Haber|h|tur||n;A News|h|eng||n;A Spor|h|tur||s;A2 TV|h|tur||f;Al Jazeera English|h|eng||n;AMSC|h|deu||f;Animal Planet|h|deu eng||d;ATV Avrupa|h|tur||f;AXN Black|h|deu qaa qde||f;AXN White|h|deu qaa qde||f;BBC World News|h|eng||n;Beyaz TV|h|tur||f;Bibel TV|h|deu||f;BR Nord|h|deu qad qks qde|deu|f;CNBC Europe|h|eng||n;CNN Türk|h|tur||n;Comedy Central|h|deu||f;Crime + Action|h|deu||f;Crime + Investigation|h|deu eng qde||d;DAZN 1|h|deu||s;DAZN 2|h|deu||s;DAZN FAST|h|deu||s;DAZN Rise|h|deu||s;Deluxe Dance|h|deu||m;Deluxe Rap|h|deu||m;Deluxe TV|h|deu||m;Deutsches Musik Fernsehen|h|deu||m;DF1|h|deu||f;Discovery|h|deu eng||d;Disney Channel|h|deu qde||k;Diyanet TV|h|tur||f;DocuBox|h|eng||d;DokuSat|h|deu||d;Edge Sport|h|eng||s;eoTV|h|deu||f;eSports1|h|deu eng||s;Euro D|h|tur||f;Euro Star|h|tur||f;euronews|h|deu||n;Eurosport 2|h|deu eng||s;EWTN|h|deu||f;Fashion TV|h|eng||f;FashionBox|h|eng||f;Fast&FunBox|h|eng||f;Fight24|h|deu||s;FightBox|h|eng||s;FilmBox Arthouse|h|eng||f;Fix & Foxi|h|deu||k;Flash Haber|h|eng||n;France 24 English|h|eng|deu|n;Gametoon|h|eng||k;GEO Television|h|deu qaa qde||d;Gute Laune TV|h|eng||m;Habertürk|h|tur||n;HandyStar|h|deu||e;Heimatkanal|h|deu||f;HGTV|h|deu||f;Hope TV|h|deu||f;HSE|h|deu||e;Jukebox|h|deu||m;K-TV|h|deu||f;Kabel Eins Classics|h|deu||f;Kabel Eins Doku|h|deu qde|deu|d;Kanal 7 Avrupa|h|tur||f;Kinowelt|h|deu qaa||f;Landlust|h|deu||d;MDR Sachsen-Anhalt|h|deu qad qks qde|deu|f;MDR Thüringen|h|deu qad qks qde|deu|f;Metal Rocks|h|deu||m;Motorvision|h|deu||s;Movie Music|h|eng||m;MTV|h|deu||m;Music Box 00s|h|zxx||m;Music Box 80s|h|zxx||m;Music Box 90s|h|zxx||m;Music Box Classic|h|zxx||m;Music Box Dance|h|zxx||m;Music Box Hits|h|zxx||m;Naruto|h|deu||k;Nat Geo Wild|h|deu eng qde qen||d;National Geographic|h|deu eng qde qen||d;NDR Bremen|h|deu qad qks|deu|f;NDR Mecklenburg-Vorpommern|h|deu qad qks|deu|f;NDR Niedersachsen|h|deu qad qks qde|deu|f;NDR Schleswig-Holstein|h|deu qad qks|deu|f;NHK World|h|eng||n;Nick Jr.|h|deu eng||k;Nickelodeon|h|deu||k;Planet|h|deu||d;ProSieben FUN|h|deu qaa||f;Quello|h|eng||f;QVC|h|deu||e;rbb Brandenburg|h|deu qad qks qde|deu|f;Red Bull TV|h|deu||s;RiC|h|deu||k;Romance TV|h|deu||f;Rot|h|deu||f;RTL Crime|h|deu qaa qde||f;RTL Living|h|deu qaa qde||f;RTL Passion|h|deu qaa qde||f;RTLup|h|deu qde||f;SAT.1 emotions|h|deu||f;SAT.1 GOLD|h|deu qde|deu|f;Show Türk|h|tur||f;Silverline|h|deu||f;sonnenklar.TV|h|deu||e;SPIEGEL Geschichte|h|deu qde||d;SPIEGEL Wissen|h|deu||d;SPORT1+|h|deu qaa||s;sportdigital|h|deu eng||s;SRF 1|h|deu eng|deu|f;SRF info|h|deu eng qad|deu|n;SRF zwei|h|deu eng|deu|f;Stingray Classica|h|eng||m;SWR Rheinland-Pfalz|h|deu qad qks qde|deu|f;SYFY|h|deu eng qde||f;Tennis Channel|h|eng||s;teve2|h|tur||f;TGRT Belgesel|h|tur||d;TGRT EU|h|tur||f;TGRT Haber|h|tur||n;The HISTORY Channel|h|deu eng qde||d;TNT Comedy|h|deu eng||f;TNT Film|h|deu eng||f;TNT Serie|h|deu eng||f;Toggo plus|h|deu||k;Top Filme|h|deu||f;Top Sci-Fi|h|deu||f;Top True Crime|h|deu||f;TR Fox|h|tur||f;Travelxp|h|deu||f;TRT 1|h|tur||f;TRT Arabi|h|ara||f;TRT Avaz|h|tur||f;TRT Belgesel|h|tur||d;TRT Haber|h|tur||n;TRT Kurdî|h|kur||f;TRT Müzik|h|tur||m;TRT Spor|h|tur||s;TRT Türk|h|tur||f;TRT World|h|eng||n;TRT Çocuk|h|tur||k;TV 4|h|eng||f;tv100|h|tur||n;TV8 International|h|tur||f;Universal TV|h|deu eng qde||f;VOXup|h|deu qde||f;watch4crime|h|deu||f;WDR Aachen|h|deu qad qks|deu|f;WDR Bielefeld|h|deu qad qks|deu|f;WDR Bonn|h|deu qad qks|deu|f;WDR Dortmund|h|deu qad qks|deu|f;WDR Duisburg|h|deu qad qks|deu|f;WDR Düsseldorf|h|deu qad qks|deu|f;WDR Essen|h|deu qad qks|deu|f;WDR Münster|h|deu qad qks|deu|f;WDR Siegen|h|deu qad qks|deu|f;WDR Wuppertal|h|deu qad qks|deu|f;wedo sports|h|deu||s;Welt der Wunder|h|deu||d;wir24|h|deu||f;Xite Hits|h|eng||m;Xite R&B|h|eng||m;Alles was zählt|s|deu||f;Bauer sucht Frau|s|deu||f;Comedy Central|s|deu||f;Deluxe TV|s|deu||m;Disney Channel|s|deu||k;DMAX|s|deu||f;Ekin Türk|s|tur||f;Eurosport 1|s|deu eng||s;GEO Television|s|deu qaa||d;Goldstar TV|s|deu||m;Hund Katze Maus|s|deu||f;Kabel Eins|s|deu||f;Kabel Eins Doku|s|deu|deu|d;Melodie TV|s|deu||m;MTV|s|deu||m;N24 Doku|s|deu||d;Nickelodeon|s|deu||k;Nicktoons|s|deu eng||k;NITRO|s|deu|deu|f;ntv|s|deu||n;ProSieben|s|deu qde|deu|f;ProSieben MAXX|s|deu||f;RTL|s|deu qde|deu|f;RTL Comedy|s|deu||f;RTL Crime|s|deu qaa||f;RTL Haus & Garten|s|deu||d;RTL Living|s|deu qaa||f;RTL Passion|s|deu qaa||f;RTL Shine|s|deu||f;RTLup|s|deu||f;RTLZWEI|s|deu||f;SAT.1|s|deu qde|deu|f;SAT.1 GOLD|s|deu|deu|f;Schlager Deluxe|s|deu||m;Shopping Queen|s|deu||e;Showmax|s|tur||f;sixx|s|deu|deu|f;SPORT1|s|deu||s;Super RTL|s|deu|deu|k;TELE 5|s|deu||f;TLC|s|deu||f;Toggo plus|s|deu||k;TV5|s|tur||f;VOX|s|deu|deu|f;VOXup|s|deu||f;WELT|s|deu||n;wetter.com TV|s|deu||f';
 
 const LABEL = { deu: 'Deutsch', qks: 'Deutsch (Klare Sprache)', qad: 'Deutsch (Audiodeskription)', qaa: 'Originalton', eng: 'Englisch', fra: 'Französisch', tur: 'Türkisch', kur: 'Kurdisch', ara: 'Arabisch', zxx: 'Kein sprachlicher Inhalt' };
 const SUBLABEL = { deu: 'Deutsch', fra: 'Französisch' };
@@ -983,7 +1002,7 @@ return Component;
 
 const P2 = (function () {
 
-const RAW = 'Das Erste|h|deu qad qks qde|deu|f;ZDF|h|deu qad qks qde|deu|f;RTL|h|deu qde|deu|f;SAT.1|h|deu qde|deu|f;ProSieben|h|deu qde|deu|f;VOX|h|deu qde|deu|f;Kabel Eins|h|deu qde|deu|f;RTLZWEI|h|deu|deu|f;Super RTL|h|deu qde|deu|k;NITRO|h|deu qde|deu|f;sixx|h|deu qde|deu|f;ProSieben MAXX|h|deu qde|deu|f;TELE 5|h|deu||f;3sat|h|deu qad qks qde|deu|d;ARTE|h|deu fra qaa qad|deu fra|d;phoenix|h|deu qaa|deu|n;ZDFneo|h|deu qad qks qde|deu|f;ZDFinfo|h|deu qad qks qde|deu|d;ONE|h|deu qad qks qde|deu|f;tagesschau24|h|deu qad qks qde|deu|n;ARD alpha|h|deu qad qks qde|deu|d;KiKA|h|deu qad qks qde|deu|k;ntv|h|deu||n;WELT|h|deu||n;N24 Doku|h|deu||d;DMAX|h|deu||f;TLC|h|deu||f;SPORT1|h|deu||s;Eurosport 1|h|deu eng||s;WDR Köln|h|deu qad qks qde|deu|f;NDR Hamburg|h|deu qad qks|deu|f;BR Süd|h|deu qad qks qde|deu|f;SWR Baden-Württemberg|h|deu qad qks qde|deu|f;hr fernsehen|h|deu qad qks qde|deu|f;MDR Sachsen|h|deu qad qks qde|deu|f;rbb Berlin|h|deu qad qks qde|deu|f;SR Fernsehen|h|deu qad qks qde|deu|f;13th Street|h|deu eng qde||f;24 TV|h|tur||f;360 TuneBox|h|eng||m;360 TV|h|tur||f;A Haber|h|tur||n;A News|h|eng||n;A Spor|h|tur||s;A2 TV|h|tur||f;Al Jazeera English|h|eng||n;AMSC|h|deu||f;Animal Planet|h|deu eng||d;ATV Avrupa|h|tur||f;AXN Black|h|deu qaa qde||f;AXN White|h|deu qaa qde||f;BBC World News|h|eng||n;Beyaz TV|h|tur||f;Bibel TV|h|deu||f;BR Nord|h|deu qad qks qde|deu|f;CNBC Europe|h|eng||n;CNN International|h|eng||n;CNN Türk|h|tur||n;Comedy Central|h|deu||f;Crime + Action|h|deu||f;Crime + Investigation|h|deu eng qde||d;DAZN 1|h|deu||s;DAZN 2|h|deu||s;DAZN FAST|h|deu||s;DAZN Rise|h|deu||s;Deluxe Dance|h|deu||m;Deluxe Rap|h|deu||m;Deluxe TV|h|deu||m;Deutsches Musik Fernsehen|h|deu||m;DF1|h|deu||f;Discovery|h|deu eng||d;Disney Channel|h|deu qde||k;Diyanet TV|h|tur||f;DocuBox|h|eng||d;DokuSat|h|deu||d;Edge Sport|h|eng||s;eoTV|h|deu||f;eSports1|h|deu eng||s;Euro D|h|tur||f;Euro Star|h|tur||f;euronews|h|deu||n;Eurosport 2|h|deu eng||s;EWTN|h|deu||f;Fashion TV|h|eng||f;FashionBox|h|eng||f;Fast&FunBox|h|eng||f;Fight24|h|deu||s;FightBox|h|eng||s;FilmBox Arthouse|h|eng||f;Fix & Foxi|h|deu||k;Flash Haber|h|eng||n;France 24 English|h|eng|deu|n;Gametoon|h|eng||k;GEO Television|h|deu qaa qde||d;Gute Laune TV|h|eng||m;Habertürk|h|tur||n;HandyStar|h|deu||e;Heimatkanal|h|deu||f;HGTV|h|deu||f;Hope TV|h|deu||f;HSE|h|deu||e;Jukebox|h|deu||m;K-TV|h|deu||f;Kabel Eins Classics|h|deu||f;Kabel Eins Doku|h|deu qde|deu|d;Kanal 7 Avrupa|h|tur||f;Kinowelt|h|deu qaa||f;Landlust|h|deu||d;MDR Sachsen-Anhalt|h|deu qad qks qde|deu|f;MDR Thüringen|h|deu qad qks qde|deu|f;Metal Rocks|h|deu||m;Motorvision|h|deu||s;Movie Music|h|eng||m;MTV|h|deu||m;Music Box 00s|h|zxx||m;Music Box 80s|h|zxx||m;Music Box 90s|h|zxx||m;Music Box Classic|h|zxx||m;Music Box Dance|h|zxx||m;Music Box Hits|h|zxx||m;Naruto|h|deu||k;Nat Geo Wild|h|deu eng qde qen||d;National Geographic|h|deu eng qde qen||d;NDR Bremen|h|deu qad qks|deu|f;NDR Mecklenburg-Vorpommern|h|deu qad qks|deu|f;NDR Niedersachsen|h|deu qad qks qde|deu|f;NDR Schleswig-Holstein|h|deu qad qks|deu|f;NHK World|h|eng||n;Nick Jr.|h|deu eng||k;Nickelodeon|h|deu||k;Planet|h|deu||d;ProSieben FUN|h|deu qaa||f;Quello|h|eng||f;QVC|h|deu||e;rbb Brandenburg|h|deu qad qks qde|deu|f;Red Bull TV|h|deu||s;RiC|h|deu||k;Romance TV|h|deu||f;Rot|h|deu||f;RTL Crime|h|deu qaa qde||f;RTL Living|h|deu qaa qde||f;RTL Passion|h|deu qaa qde||f;RTLup|h|deu qde||f;SAT.1 emotions|h|deu||f;SAT.1 GOLD|h|deu qde|deu|f;Sbl0|h|deu qde||s;Sbl1|h|deu qaa qde||s;Sbl10|h|deu qaa qde||s;Sbl2|h|deu qaa qde||s;Sbl3|h|deu qaa qde||s;Sbl4|h|deu qaa qde||s;Sbl5|h|deu qaa qde||s;Sbl6|h|deu qaa qde||s;Sbl7|h|deu qaa qde||s;Sbl8|h|deu qaa qde||s;Sbl9|h|deu qaa qde||s;Show Türk|h|tur||f;Silverline|h|deu||f;sonnenklar.TV|h|deu||e;SPIEGEL Geschichte|h|deu qde||d;SPIEGEL Wissen|h|deu||d;SPORT1+|h|deu qaa||s;sportdigital|h|deu eng||s;SRF 1|h|deu eng|deu|f;SRF info|h|deu eng qad|deu|n;SRF zwei|h|deu eng|deu|f;Stingray Classica|h|eng||m;SWR Rheinland-Pfalz|h|deu qad qks qde|deu|f;SYFY|h|deu eng qde||f;Tennis Channel|h|eng||s;teve2|h|tur||f;TGRT Belgesel|h|tur||d;TGRT EU|h|tur||f;TGRT Haber|h|tur||n;The HISTORY Channel|h|deu eng qde||d;TNT Comedy|h|deu eng||f;TNT Film|h|deu eng||f;TNT Serie|h|deu eng||f;Toggo plus|h|deu||k;Top Filme|h|deu||f;Top Sci-Fi|h|deu||f;Top True Crime|h|deu||f;TR Fox|h|tur||f;Travelxp|h|deu||f;TRT 1|h|tur||f;TRT Arabi|h|ara||f;TRT Avaz|h|tur||f;TRT Belgesel|h|tur||d;TRT Haber|h|tur||n;TRT Kurdî|h|kur||f;TRT Müzik|h|tur||m;TRT Spor|h|tur||s;TRT Türk|h|tur||f;TRT World|h|eng||n;TRT Çocuk|h|tur||k;TV 4|h|eng||f;tv100|h|tur||n;TV8 International|h|tur||f;Universal TV|h|deu eng qde||f;VOXup|h|deu qde||f;watch4crime|h|deu||f;WDR Aachen|h|deu qad qks|deu|f;WDR Bielefeld|h|deu qad qks|deu|f;WDR Bonn|h|deu qad qks|deu|f;WDR Dortmund|h|deu qad qks|deu|f;WDR Duisburg|h|deu qad qks|deu|f;WDR Düsseldorf|h|deu qad qks|deu|f;WDR Essen|h|deu qad qks|deu|f;WDR Münster|h|deu qad qks|deu|f;WDR Siegen|h|deu qad qks|deu|f;WDR Wuppertal|h|deu qad qks|deu|f;wedo sports|h|deu||s;Welt der Wunder|h|deu||d;wir24|h|deu||f;Xite Hits|h|eng||m;Xite R&B|h|eng||m;Alles was zählt|s|deu||f;Bauer sucht Frau|s|deu||f;Comedy Central|s|deu||f;Deluxe TV|s|deu||m;Disney Channel|s|deu||k;DMAX|s|deu||f;Ekin Türk|s|tur||f;Eurosport 1|s|deu eng||s;GEO Television|s|deu qaa||d;Goldstar TV|s|deu||m;Hund Katze Maus|s|deu||f;Kabel Eins|s|deu||f;Kabel Eins Doku|s|deu|deu|d;Melodie TV|s|deu||m;MTV|s|deu||m;N24 Doku|s|deu||d;Nickelodeon|s|deu||k;Nicktoons|s|deu eng||k;NITRO|s|deu|deu|f;ntv|s|deu||n;ProSieben|s|deu qde|deu|f;ProSieben MAXX|s|deu||f;RTL|s|deu qde|deu|f;RTL Comedy|s|deu||f;RTL Crime|s|deu qaa||f;RTL Haus & Garten|s|deu||d;RTL Living|s|deu qaa||f;RTL Passion|s|deu qaa||f;RTL Shine|s|deu||f;RTLup|s|deu||f;RTLZWEI|s|deu||f;SAT.1|s|deu qde|deu|f;SAT.1 GOLD|s|deu|deu|f;Schlager Deluxe|s|deu||m;Shopping Queen|s|deu||e;Showmax|s|tur||f;sixx|s|deu|deu|f;SPORT1|s|deu||s;Super RTL|s|deu|deu|k;TELE 5|s|deu||f;TLC|s|deu||f;Toggo plus|s|deu||k;TV5|s|tur||f;VOX|s|deu|deu|f;VOXup|s|deu||f;WELT|s|deu||n;wetter.com TV|s|deu||f;EXA Test 10|h|deu||f;EXA Test 11|h|deu||f;EXA Test 12|h|deu qde||f;EXA Test 13|h|deu||f;EXA Test 14|h|deu||f;EXA Test 15|h|deu||f;EXA Test 1|s|deu||f;EXA Test 2|h|deu||f;EXA Test 4|h|deu qde||f;EXA Test 5|h|deu||f;EXA Test 6|h|deu||f;EXA Test 8|h|deu qad qks qde||f;EXA Test 9|h|deu qde||f';
+const RAW = 'Das Erste|h|deu qad qks qde|deu|f;ZDF|h|deu qad qks qde|deu|f;RTL|h|deu qde|deu|f;TELE 5|h|deu||f;ProSieben|h|deu qde|deu|f;ARTE|h|deu fra qaa qad|deu fra|d;RTLZWEI|h|deu|deu|f;SAT.1|h|deu qde|deu|f;ntv|h|deu||n;VOX|h|deu qde|deu|f;13th Street|h|deu eng qde||f;Kabel Eins|h|deu qde|deu|f;DMAX|h|deu||f;3sat|h|deu qad qks qde|deu|d;phoenix|h|deu qaa|deu|n;CNN International|h|eng||n;Super RTL|h|deu qde|deu|k;NITRO|h|deu qde|deu|f;sixx|h|deu qde|deu|f;ProSieben MAXX|h|deu qde|deu|f;ZDFneo|h|deu qad qks qde|deu|f;ZDFinfo|h|deu qad qks qde|deu|d;ONE|h|deu qad qks qde|deu|f;tagesschau24|h|deu qad qks qde|deu|n;ARD alpha|h|deu qad qks qde|deu|d;KiKA|h|deu qad qks qde|deu|k;WELT|h|deu||n;N24 Doku|h|deu||d;TLC|h|deu||f;SPORT1|h|deu||s;Eurosport 1|h|deu eng||s;WDR Köln|h|deu qad qks qde|deu|f;NDR Hamburg|h|deu qad qks|deu|f;BR Süd|h|deu qad qks qde|deu|f;SWR Baden-Württemberg|h|deu qad qks qde|deu|f;hr fernsehen|h|deu qad qks qde|deu|f;MDR Sachsen|h|deu qad qks qde|deu|f;rbb Berlin|h|deu qad qks qde|deu|f;SR Fernsehen|h|deu qad qks qde|deu|f;24 TV|h|tur||f;360 TuneBox|h|eng||m;360 TV|h|tur||f;A Haber|h|tur||n;A News|h|eng||n;A Spor|h|tur||s;A2 TV|h|tur||f;Al Jazeera English|h|eng||n;AMSC|h|deu||f;Animal Planet|h|deu eng||d;ATV Avrupa|h|tur||f;AXN Black|h|deu qaa qde||f;AXN White|h|deu qaa qde||f;BBC World News|h|eng||n;Beyaz TV|h|tur||f;Bibel TV|h|deu||f;BR Nord|h|deu qad qks qde|deu|f;CNBC Europe|h|eng||n;CNN Türk|h|tur||n;Comedy Central|h|deu||f;Crime + Action|h|deu||f;Crime + Investigation|h|deu eng qde||d;DAZN 1|h|deu||s;DAZN 2|h|deu||s;DAZN FAST|h|deu||s;DAZN Rise|h|deu||s;Deluxe Dance|h|deu||m;Deluxe Rap|h|deu||m;Deluxe TV|h|deu||m;Deutsches Musik Fernsehen|h|deu||m;DF1|h|deu||f;Discovery|h|deu eng||d;Disney Channel|h|deu qde||k;Diyanet TV|h|tur||f;DocuBox|h|eng||d;DokuSat|h|deu||d;Edge Sport|h|eng||s;eoTV|h|deu||f;eSports1|h|deu eng||s;Euro D|h|tur||f;Euro Star|h|tur||f;euronews|h|deu||n;Eurosport 2|h|deu eng||s;EWTN|h|deu||f;Fashion TV|h|eng||f;FashionBox|h|eng||f;Fast&FunBox|h|eng||f;Fight24|h|deu||s;FightBox|h|eng||s;FilmBox Arthouse|h|eng||f;Fix & Foxi|h|deu||k;Flash Haber|h|eng||n;France 24 English|h|eng|deu|n;Gametoon|h|eng||k;GEO Television|h|deu qaa qde||d;Gute Laune TV|h|eng||m;Habertürk|h|tur||n;HandyStar|h|deu||e;Heimatkanal|h|deu||f;HGTV|h|deu||f;Hope TV|h|deu||f;HSE|h|deu||e;Jukebox|h|deu||m;K-TV|h|deu||f;Kabel Eins Classics|h|deu||f;Kabel Eins Doku|h|deu qde|deu|d;Kanal 7 Avrupa|h|tur||f;Kinowelt|h|deu qaa||f;Landlust|h|deu||d;MDR Sachsen-Anhalt|h|deu qad qks qde|deu|f;MDR Thüringen|h|deu qad qks qde|deu|f;Metal Rocks|h|deu||m;Motorvision|h|deu||s;Movie Music|h|eng||m;MTV|h|deu||m;Music Box 00s|h|zxx||m;Music Box 80s|h|zxx||m;Music Box 90s|h|zxx||m;Music Box Classic|h|zxx||m;Music Box Dance|h|zxx||m;Music Box Hits|h|zxx||m;Naruto|h|deu||k;Nat Geo Wild|h|deu eng qde qen||d;National Geographic|h|deu eng qde qen||d;NDR Bremen|h|deu qad qks|deu|f;NDR Mecklenburg-Vorpommern|h|deu qad qks|deu|f;NDR Niedersachsen|h|deu qad qks qde|deu|f;NDR Schleswig-Holstein|h|deu qad qks|deu|f;NHK World|h|eng||n;Nick Jr.|h|deu eng||k;Nickelodeon|h|deu||k;Planet|h|deu||d;ProSieben FUN|h|deu qaa||f;Quello|h|eng||f;QVC|h|deu||e;rbb Brandenburg|h|deu qad qks qde|deu|f;Red Bull TV|h|deu||s;RiC|h|deu||k;Romance TV|h|deu||f;Rot|h|deu||f;RTL Crime|h|deu qaa qde||f;RTL Living|h|deu qaa qde||f;RTL Passion|h|deu qaa qde||f;RTLup|h|deu qde||f;SAT.1 emotions|h|deu||f;SAT.1 GOLD|h|deu qde|deu|f;Show Türk|h|tur||f;Silverline|h|deu||f;sonnenklar.TV|h|deu||e;SPIEGEL Geschichte|h|deu qde||d;SPIEGEL Wissen|h|deu||d;SPORT1+|h|deu qaa||s;sportdigital|h|deu eng||s;SRF 1|h|deu eng|deu|f;SRF info|h|deu eng qad|deu|n;SRF zwei|h|deu eng|deu|f;Stingray Classica|h|eng||m;SWR Rheinland-Pfalz|h|deu qad qks qde|deu|f;SYFY|h|deu eng qde||f;Tennis Channel|h|eng||s;teve2|h|tur||f;TGRT Belgesel|h|tur||d;TGRT EU|h|tur||f;TGRT Haber|h|tur||n;The HISTORY Channel|h|deu eng qde||d;TNT Comedy|h|deu eng||f;TNT Film|h|deu eng||f;TNT Serie|h|deu eng||f;Toggo plus|h|deu||k;Top Filme|h|deu||f;Top Sci-Fi|h|deu||f;Top True Crime|h|deu||f;TR Fox|h|tur||f;Travelxp|h|deu||f;TRT 1|h|tur||f;TRT Arabi|h|ara||f;TRT Avaz|h|tur||f;TRT Belgesel|h|tur||d;TRT Haber|h|tur||n;TRT Kurdî|h|kur||f;TRT Müzik|h|tur||m;TRT Spor|h|tur||s;TRT Türk|h|tur||f;TRT World|h|eng||n;TRT Çocuk|h|tur||k;TV 4|h|eng||f;tv100|h|tur||n;TV8 International|h|tur||f;Universal TV|h|deu eng qde||f;VOXup|h|deu qde||f;watch4crime|h|deu||f;WDR Aachen|h|deu qad qks|deu|f;WDR Bielefeld|h|deu qad qks|deu|f;WDR Bonn|h|deu qad qks|deu|f;WDR Dortmund|h|deu qad qks|deu|f;WDR Duisburg|h|deu qad qks|deu|f;WDR Düsseldorf|h|deu qad qks|deu|f;WDR Essen|h|deu qad qks|deu|f;WDR Münster|h|deu qad qks|deu|f;WDR Siegen|h|deu qad qks|deu|f;WDR Wuppertal|h|deu qad qks|deu|f;wedo sports|h|deu||s;Welt der Wunder|h|deu||d;wir24|h|deu||f;Xite Hits|h|eng||m;Xite R&B|h|eng||m;Alles was zählt|s|deu||f;Bauer sucht Frau|s|deu||f;Comedy Central|s|deu||f;Deluxe TV|s|deu||m;Disney Channel|s|deu||k;DMAX|s|deu||f;Ekin Türk|s|tur||f;Eurosport 1|s|deu eng||s;GEO Television|s|deu qaa||d;Goldstar TV|s|deu||m;Hund Katze Maus|s|deu||f;Kabel Eins|s|deu||f;Kabel Eins Doku|s|deu|deu|d;Melodie TV|s|deu||m;MTV|s|deu||m;N24 Doku|s|deu||d;Nickelodeon|s|deu||k;Nicktoons|s|deu eng||k;NITRO|s|deu|deu|f;ntv|s|deu||n;ProSieben|s|deu qde|deu|f;ProSieben MAXX|s|deu||f;RTL|s|deu qde|deu|f;RTL Comedy|s|deu||f;RTL Crime|s|deu qaa||f;RTL Haus & Garten|s|deu||d;RTL Living|s|deu qaa||f;RTL Passion|s|deu qaa||f;RTL Shine|s|deu||f;RTLup|s|deu||f;RTLZWEI|s|deu||f;SAT.1|s|deu qde|deu|f;SAT.1 GOLD|s|deu|deu|f;Schlager Deluxe|s|deu||m;Shopping Queen|s|deu||e;Showmax|s|tur||f;sixx|s|deu|deu|f;SPORT1|s|deu||s;Super RTL|s|deu|deu|k;TELE 5|s|deu||f;TLC|s|deu||f;Toggo plus|s|deu||k;TV5|s|tur||f;VOX|s|deu|deu|f;VOXup|s|deu||f;WELT|s|deu||n;wetter.com TV|s|deu||f';
 
 const LABEL = { deu: 'Deutsch', qde: 'Deutsch (Dolby Audio)', qks: 'Deutsch (Klare Sprache)', qad: 'Deutsch (Audiodeskription)', qaa: 'Originalton', eng: 'Englisch', qen: 'Englisch (Dolby Audio)', fra: 'Französisch', tur: 'Türkisch', kur: 'Kurdisch', ara: 'Arabisch', zxx: 'Kein sprachlicher Inhalt' };
 const SUBLABEL = { deu: 'Deutsch', fra: 'Französisch' };
@@ -1366,12 +1385,22 @@ return Component;
   const stage = document.getElementById('stage');
   const cards = document.getElementById('cards');
   let active = null;
+  const DESC = {"Die Küstenwache von Hallig Nord": "Ein Sturmtief zieht über die Nordsee. Während die Crew um Kapitänin Jensen einen manövrierunfähigen Kutter sichern muss, gerät ein Rettungseinsatz in der Nacht außer Kontrolle.", "Zwischen den Gleisen": "Nach zwanzig Jahren kehrt die Lokführerin Marlene in ihre Heimatstadt zurück. Am stillgelegten Bahnhof holt sie eine Begegnung ein, die sie längst verdrängt glaubte.", "Das Haus am Weinberg": "Familie Hoffmann hat sich gerade am Weinberg eingelebt, da ziehen nebenan neue Nachbarn ein – und die haben ganz eigene Pläne für das gemeinsame Grundstück.", "Nachtschicht im Revier 9": "Ein Einbruch in einer Juwelierwerkstatt scheint schnell geklärt. Doch Kommissarin Aydın misstraut dem Geständnis und folgt einer Spur, die tief in die eigenen Reihen führt.", "Die große Backstube": "Im Finale treten die drei besten Hobbybäckerinnen und -bäcker gegeneinander an. Ihre letzte Aufgabe: eine dreistöckige Torte zum Thema „Heimat“.", "Fremde Spuren": "Ein Gerichtsmediziner entdeckt an einem scheinbar natürlichen Todesfall Ungereimtheiten. Als er nachforscht, wird er selbst zur Zielscheibe.", "Kanzlei Brandt": "Ein Testament spaltet eine Unternehmerfamilie. Anwältin Brandt soll vermitteln – und stößt auf eine Klausel, die alles infrage stellt.", "Wilde Wasser des Nordens": "Die Reise führt entlang der norwegischen Fjorde, wo Schmelzwasser, Gezeiten und Wind eine einzigartige Landschaft formen. Seeadler und Schweinswale sind hier zu Hause.", "Maschinen der Antike": "Wie mahlten die Römer ihr Getreide in großem Stil? Archäologen rekonstruieren eine Mühlenanlage und zeigen, wie viel Ingenieurskunst in ihr steckte.", "Leben im Hochmoor": "Ein Jahr im Hochmoor: Zwischen Torfmoos und Wollgras leben Arten, die anderswo kaum noch vorkommen. Die Dokumentation begleitet ein Renaturierungsprojekt.", "Städte unter Druck": "Hitzesommer stellen Großstädte vor neue Probleme. Die Reportage zeigt, wie Planerinnen und Planer mit Grünflächen, Wasser und Schatten gegensteuern.", "Nachrichten am Nachmittag": "Aktuelle Meldungen aus Deutschland und der Welt, dazu Hintergründe, Wirtschaft und das Wetter.", "Das Wirtschaftsmagazin": "Die Börsen im Überblick, ein Blick auf den Energiemarkt und ein Gespräch über die Zukunft des Einzelhandels.", "Im Gespräch": "Ein ausführliches Interview zu den politischen Themen der Woche – mit Fragen der Zuschauerinnen und Zuschauer.", "Live: Hallenfußball-Cup": "Halbfinale beim traditionellen Hallenturnier. Vier Mannschaften kämpfen um den Einzug ins Finale am Abend.", "Motorsport kompakt": "Die Höhepunkte des Rennwochenendes: Überholmanöver, Boxenstopps und Stimmen aus dem Fahrerlager.", "Tennis: Herbst-Open": "Viertelfinale beim Hallenturnier – mit zwei Partien in voller Länge und Analysen zwischen den Sätzen.", "Hits nonstop": "Die aktuellen Musikvideos aus Pop, Dance und Hip-Hop – ohne Unterbrechung.", "Die Charts der Woche": "Der Countdown der beliebtesten Songs, mit Neueinsteigern und den Aufsteigern der Woche.", "Pip und die Wolkenbande": "Pip findet einen Schlüssel aus Regenbogenlicht. Gemeinsam mit der Wolkenbande macht sie sich auf die Suche nach dem passenden Schloss.", "Forscherkiste": "Warum ist der Himmel blau? Mit einfachen Experimenten zeigen Lea und Jonas, was mit dem Sonnenlicht in der Luft passiert.", "Shopping am Nachmittag": "Praktisches für Haushalt und Küche, live vorgestellt – mit Tipps zur Anwendung und Pflege.", "Reisezeit": "Die Reiseangebote der Woche: Städtetrips, Wellnesswochenenden und ein Abstecher an die Ostsee."};
+  let idleTimer = null;
+  const IDLE_MS = 6000;
+  const META = { 1: { name: 'Variante Lila', color: '#b48cff' }, 2: { name: 'Variante Orange', color: '#f39a45' } };
+  const baseTitle = document.title;
+  const splash = document.getElementById('splash');
+  const splashName = document.getElementById('splashName');
+  let splashTimer = null;
 
   function fit() {
     const s = Math.min(window.innerWidth / 2280, window.innerHeight / 1080);
     stage.style.transform = 'translate(-50%, -50%) scale(' + s + ')';
+    document.getElementById('stageOverlay').style.transform = stage.style.transform;
   }
   window.addEventListener('resize', fit);
+  ['click', 'mousemove'].forEach((ev) => stage.addEventListener(ev, () => { if (active && active.resetIdle) active.resetIdle(); }));
 
   function start(n) {
     const Comp = n === 1 ? P1 : P2;
@@ -1379,6 +1408,28 @@ return Component;
     const inst = new Comp({ accent: '#4da3ff' });
     const ctx = { inst, vals: null, last: n };
     const extra = { exitProto: () => exit() };
+    inst.remoteHome = () => exit();
+    const fadeThen = (sel, fn) => {
+      const el = stage.querySelector('[data-ov="' + sel + '"]');
+      if (!el) { fn(); return; }
+      el.style.transition = 'opacity 400ms ease';
+      el.style.opacity = '0';
+      setTimeout(fn, 400);
+    };
+    inst.armZap = () => {
+      clearTimeout(inst.zapTimer);
+      inst.zapTimer = setTimeout(() => fadeThen('zap', () => { if (inst.topOf(inst.state) === 'zap') inst.setState({ stack: ['stream'] }); }), 5000);
+    };
+    ctx.resetIdle = () => {
+      clearTimeout(idleTimer);
+      idleTimer = setTimeout(() => {
+        if (active !== ctx) return;
+        const top = inst.topOf(inst.state);
+        if (top === 'controls' && !inst.state.paused) fadeThen('controls', () => { if (active === ctx && inst.topOf(inst.state) === 'controls') inst.setState({ stack: ['stream'], info: false }); });
+        else ctx.resetIdle();
+      }, IDLE_MS);
+    };
+    inst.state = Object.assign({}, inst.state, { stack: ['stream', 'controls'], focus: 2 });
     const origBack = inst.back.bind(inst);
     inst.back = () => {
       const st = inst.state.stack || ['stream'];
@@ -1391,6 +1442,7 @@ return Component;
       const st = inst.state.stack || ['stream'];
       if (st[st.length - 1] === 'info') { vals.showOverlay = true; vals.showInfoLayer = true; }
       vals.closeInfo = () => inst.back();
+      vals.desc = DESC[vals.title] || 'Weitere Informationen zur laufenden Sendung folgen in Kürze.';
       ctx.vals = vals;
       const frag = document.createDocumentFragment();
       tpl.content.childNodes.forEach((c) => render(c, vals, frag));
@@ -1402,40 +1454,50 @@ return Component;
       requestAnimationFrame(() => { pending = false; if (active === ctx) draw(); });
     };
     active = ctx;
+    const meta = META[n];
+    document.title = meta.name + ' – waipu.tv Test';
+    splashName.textContent = meta.name;
+    splashName.style.color = meta.color;
+    splash.classList.add('show');
+    clearTimeout(splashTimer);
+    splashTimer = setTimeout(() => splash.classList.remove('show'), 2800);
     landing.style.display = 'none';
     stageWrap.style.display = 'block';
     fit();
     draw();
     if (inst.componentDidMount) inst.componentDidMount();
+    ctx.resetIdle();
     if (document.activeElement) document.activeElement.blur();
   }
 
   function exit() {
     if (!active) return;
     const n = active.last;
+    clearTimeout(idleTimer);
     if (active.inst.componentWillUnmount) active.inst.componentWillUnmount();
     active = null;
+    clearTimeout(splashTimer);
+    splash.classList.remove('show');
+    document.title = baseTitle;
     stage.replaceChildren();
     stageWrap.style.display = 'none';
     landing.style.display = 'flex';
-    const btn = cards.querySelector('[data-proto="' + n + '"]');
-    if (btn) btn.focus();
   }
 
   document.addEventListener('keydown', (e) => {
     if (active) {
+      if (active.resetIdle) active.resetIdle();
       if (active.vals && active.vals.onKey) active.vals.onKey(e);
       return;
     }
     const list = Array.from(cards.querySelectorAll('.card'));
     const i = list.indexOf(document.activeElement);
-    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); list[Math.min(list.length - 1, i + 1)].focus(); }
-    else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); list[Math.max(0, i - 1)].focus(); }
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); list[i < 0 ? 0 : Math.min(list.length - 1, i + 1)].focus(); }
+    else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); list[i < 0 ? 0 : Math.max(0, i - 1)].focus(); }
   });
 
   cards.querySelectorAll('.card').forEach((b) => b.addEventListener('click', () => start(Number(b.dataset.proto))));
   if (Math.random() < 0.5) cards.appendChild(cards.firstElementChild);
-  cards.querySelector('.card').focus();
 })();
 </script>
 </body>
