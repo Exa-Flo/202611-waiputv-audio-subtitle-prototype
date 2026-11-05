@@ -1,0 +1,1442 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LiveTV-Player – Prototypen Audio und Untertitel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+html, body { margin: 0; height: 100%; background: #0b1118; color: #ffffff; font-family: 'Open Sans', Arial, Helvetica, sans-serif; overflow: hidden; }
+#landing { box-sizing: border-box; height: 100%; display: flex; align-items: center; justify-content: center; padding: 5vh 6vw; overflow-y: auto; }
+.wrap { width: 100%; max-width: 1240px; display: flex; flex-direction: column; gap: 40px; }
+.eyebrow { font-size: 18px; font-weight: 600; color: #7ab8ff; margin: 0 0 12px; }
+h1 { margin: 0; font-size: clamp(32px, 4vw, 52px); font-weight: 700; line-height: 1.15; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
+.card { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 120px; padding: 24px 32px; box-sizing: border-box; border: 3px solid #2a3846; border-radius: 14px; background: #151f2b; color: #ffffff; font-family: inherit; text-align: left; cursor: pointer; }
+.card:hover, .card:focus-visible { border-color: #ffffff; outline: none; }
+.card-title { font-size: clamp(26px, 2.6vw, 36px); font-weight: 700; }
+.pill { flex-shrink: 0; font-size: 18px; font-weight: 700; padding: 10px 24px; border-radius: 24px; border: 2px solid rgba(255,255,255,0.6); }
+.card:hover .pill, .card:focus-visible .pill { background: #ffffff; color: #0b1118; border-color: #ffffff; }
+.tasks { border-radius: 14px; background: #151f2b; padding: 24px 32px; }
+.tasks h2 { margin: 0 0 12px; font-size: 22px; font-weight: 700; }
+.tasks ol { margin: 0; padding-left: 1.4em; font-size: 19px; line-height: 1.6; color: #d5dbe2; }
+.tasks p { margin: 16px 0 0; font-size: 19px; line-height: 1.6; color: #d5dbe2; max-width: 70ch; }
+.foot { margin: 0; font-size: 16px; line-height: 1.6; color: #aab5c1; }
+#stageWrap { position: fixed; inset: 0; display: none; background: #05080c; }
+#stage { position: absolute; left: 50%; top: 50%; width: 2280px; height: 1080px; transform-origin: center center; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<main id="landing">
+<div class="wrap">
+<div>
+<p class="eyebrow">LiveTV-Player · Audio und Untertitel</p>
+<h1>Welchen Prototyp möchtest du starten?</h1>
+</div>
+<div class="cards" id="cards">
+<button type="button" class="card" data-proto="1"><span class="card-title">Prototyp 1</span><span class="pill">Starten</span></button>
+<button type="button" class="card" data-proto="2"><span class="card-title">Prototyp 2</span><span class="pill">Starten</span></button>
+</div>
+<section class="tasks" aria-labelledby="tasks-h">
+<h2 id="tasks-h">Probiere Folgendes in beiden Prototypen aus:</h2>
+<ol>
+<li>Stelle Untertitel, eine andere Tonspur oder Dolby-Ton ein (Menü „Audio und Untertitel“).</li>
+<li>Wechsle danach durch mehrere Sender, z. B. bis Sender 015 und zurück.</li>
+<li>Achte dabei auf die Kennzeichnungen neben dem Sendernamen, etwa UT oder DD.</li>
+<li>Öffne das Menü auf verschiedenen Sendern erneut.</li>
+</ol>
+<p>Erzähle uns danach, was dir aufgefallen ist. War dir zum Beispiel immer klar, was gerade läuft und was deine gespeicherte Präferenz ist? Sind alle Kennzeichnungen bezüglich Tonspuren und Untertitel eingängig gewesen?</p>
+</section>
+<p class="foot">Bedienung: Fernbedienung am Rand oder Pfeiltasten, Enter, Backspace · Vollbild mit F11<br>Zurück auf diese Übersicht per Button „Startseite“ über der Fernbedienung</p>
+</div>
+</main>
+<div id="stageWrap" aria-live="off"><div id="stage"></div></div>
+
+<template id="tpl-1"><div ref="{{ rootRef }}" tabIndex="0" onKeyDown="{{ onKey }}" onMouseEnter="{{ onEnter }}" aria-label="LiveTV-Player. Bedienung per virtueller Fernbedienung oder mit Pfeiltasten, Enter und Backspace." style="width: 2280px; height: 1080px; display: flex; background: #11151b; color: #ffffff; font-family: 'Open Sans', Arial, sans-serif; outline: none">
+<div style="width: 1920px; height: 1080px; position: relative; overflow: hidden; flex-shrink: 0; background: {{ videoBg }}">
+
+<div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: rgba(255,255,255,0.22)" aria-hidden="true">
+<span style="font-size: 28px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase">Videobild</span>
+<span style="font-size: 24px; font-weight: 600">{{ chName }}</span>
+</div>
+
+<sc-if value="{{ showStream }}" hint-placeholder-val="{{ false }}">
+<button type="button" aria-label="Player-Steuerung öffnen" onClick="{{ openControlsClick }}" style="position: absolute; inset: 0; padding: 0; border: 0; background: transparent; cursor: pointer"></button>
+</sc-if>
+
+<sc-if value="{{ showZap }}" hint-placeholder-val="{{ false }}">
+<div aria-live="polite" style="position: absolute; left: 0; top: 0; right: 0; height: 560px; background: linear-gradient(rgba(8,12,18,0.88), rgba(8,12,18,0.6) 60%, rgba(8,12,18,0)); pointer-events: none">
+<div style="position: absolute; left: 204px; top: 62px; width: 1340px; display: flex; flex-direction: column">
+<div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap">
+<span style="font-size: 30px; font-weight: 400">{{ chNum }} | {{ chName }}</span>
+<sc-for list="{{ hdrBadges }}" as="z" hint-placeholder-count="3">
+<span aria-label="{{ z.aria }}" style="display: inline-flex; align-items: center; height: 34px; padding: 0 9px; box-sizing: border-box; border-radius: 4px; font-size: 19px; font-weight: 700; {{ z.css }}">{{ z.label }}</span>
+</sc-for>
+</div>
+<h1 style="margin: 22px 0 0; font-size: 50px; line-height: 1.3; font-weight: 600; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden">{{ title }}</h1>
+<p style="margin: 10px 0 0; font-size: 28px; font-weight: 600">{{ subtitle }}</p>
+<p style="margin: 8px 0 0; font-size: 28px; font-weight: 600">{{ genre }}</p>
+<p style="margin: 8px 0 0; font-size: 28px; font-weight: 600; color: {{ accent }}">{{ timeLine }}</p>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ showOverlay }}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; inset: 0; background: rgba(8,12,18,0.62)">
+<button type="button" aria-label="Zurück" onClick="{{ hideOverlay }}" style="position: absolute; left: 96px; top: 64px; width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 32px; background: transparent; color: #ffffff; cursor: pointer">
+<svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12H4"></path><path d="M10 6l-6 6 6 6"></path></svg>
+</button>
+
+<div style="position: absolute; left: 204px; top: 62px; width: 1340px; display: flex; flex-direction: column">
+<div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap">
+<span style="font-size: 30px; font-weight: 400">{{ chNum }} | {{ chName }}</span>
+<sc-for list="{{ hdrBadges }}" as="b" hint-placeholder-count="3">
+<span aria-label="{{ b.aria }}" style="display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 9px; box-sizing: border-box; border-radius: 4px; font-size: 19px; font-weight: 700; {{ b.css }}">{{ b.label }}</span>
+</sc-for>
+</div>
+<h1 style="margin: 22px 0 0; font-size: 50px; line-height: 1.3; font-weight: 600; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden">{{ title }}</h1>
+<p style="margin: 10px 0 0; font-size: 28px; font-weight: 600">{{ subtitle }}</p>
+<p style="margin: 8px 0 0; font-size: 28px; font-weight: 600">{{ genre }}</p>
+<p style="margin: 8px 0 0; font-size: 28px; font-weight: 600; color: {{ accent }}">{{ timeLine }}</p>
+<sc-if value="{{ showInfo }}" hint-placeholder-val="{{ false }}">
+<p style="margin: 24px 0 0; max-width: 1040px; font-size: 24px; line-height: 1.5; color: #d5dbe2">[Beschreibungstext der laufenden Sendung, zwei bis drei Zeilen]</p>
+</sc-if>
+</div>
+
+<div style="position: absolute; left: 204px; right: 206px; bottom: 56px; display: flex; flex-direction: column">
+<div style="height: 4px; border-radius: 2px; background: rgba(255,255,255,0.9); overflow: hidden">
+<div style="height: 4px; width: {{ pct }}; background: {{ accent }}"></div>
+</div>
+<div style="display: flex; justify-content: space-between; margin-top: 12px; font-size: 22px; color: #e6eaee">
+<span>{{ startTime }}</span>
+<span>{{ endTime }}</span>
+</div>
+
+<div style="display: flex; align-items: flex-start; margin-top: 18px; height: 128px">
+<button type="button" onClick="{{ c0.click }}" style="display: flex; align-items: center; gap: 22px; height: 80px; padding: 0 40px 0 42px; border: 0; border-radius: 40px; background: {{ c0.bg }}; color: {{ c0.fg }}; font-family: 'Open Sans', Arial, sans-serif; font-size: 32px; font-weight: 600; cursor: pointer">
+<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M9 6h11"></path><path d="M9 12h11"></path><path d="M9 18h11"></path><path d="M4 6h.01"></path><path d="M4 12h.01"></path><path d="M4 18h.01"></path></svg>
+Senderliste
+</button>
+
+<div style="display: flex; align-items: flex-start; gap: 34px; margin-left: 190px">
+<div style="display: flex; flex-direction: column; align-items: center; gap: 10px; width: 80px">
+<button type="button" aria-label="Sendung von Beginn" onClick="{{ c1.click }}" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 40px; background: {{ c1.bg }}; color: {{ c1.fg }}; cursor: pointer">
+<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 5v14"></path><path d="M19 5L9 12l10 7z" fill="currentColor"></path></svg>
+</button>
+<sc-if value="{{ c1.focused }}" hint-placeholder-val="{{ false }}"><span style="font-size: 22px; white-space: nowrap">{{ c1.label }}</span></sc-if>
+</div>
+
+<div style="display: flex; flex-direction: column; align-items: center; gap: 10px; width: 80px">
+<button type="button" aria-label="{{ c2.label }}" onClick="{{ c2.click }}" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 40px; background: {{ c2.bg }}; color: {{ c2.fg }}; cursor: pointer">
+<sc-if value="{{ isPlaying }}" hint-placeholder-val="{{ true }}">
+<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M8.5 5v14"></path><path d="M15.5 5v14"></path></svg>
+</sc-if>
+<sc-if value="{{ isPaused }}" hint-placeholder-val="{{ false }}">
+<svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M8 5l11 7-11 7z"></path></svg>
+</sc-if>
+</button>
+<sc-if value="{{ c2.focused }}" hint-placeholder-val="{{ true }}"><span style="font-size: 22px; white-space: nowrap">{{ c2.label }}</span></sc-if>
+</div>
+
+<div style="display: flex; flex-direction: column; align-items: center; gap: 10px; min-width: 110px">
+<button type="button" aria-label="{{ c3.label }}" onClick="{{ c3.click }}" style="height: 80px; padding: 0 18px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 40px; background: {{ c3.bg }}; color: {{ liveFg }}; font-family: 'Open Sans', Arial, sans-serif; font-size: 34px; font-weight: 800; letter-spacing: 0.02em; cursor: pointer">LIVE</button>
+<sc-if value="{{ c3.focused }}" hint-placeholder-val="{{ false }}"><span style="font-size: 22px; white-space: nowrap">{{ c3.label }}</span></sc-if>
+</div>
+
+<div style="display: flex; flex-direction: column; align-items: center; gap: 10px; width: 80px">
+<button type="button" aria-label="{{ c4.label }}" onClick="{{ c4.click }}" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 40px; background: {{ c4.bg }}; color: {{ c4.fg }}; cursor: pointer">
+<svg width="58" height="58" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.6"></circle><circle cx="12" cy="12" r="{{ recR }}" fill="#e5173f"></circle></svg>
+</button>
+<sc-if value="{{ c4.focused }}" hint-placeholder-val="{{ false }}"><span style="font-size: 22px; white-space: nowrap">{{ c4.label }}</span></sc-if>
+</div>
+
+<div style="display: flex; flex-direction: column; align-items: center; gap: 10px; width: 80px">
+<button type="button" aria-label="Audio und Untertitel" onClick="{{ c5.click }}" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 40px; background: {{ c5.bg }}; color: {{ c5.fg }}; cursor: pointer">
+<svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 4.5h17v11.5h-9.5l-4.5 4v-4h-3z"></path><path d="M7.5 8.5h9"></path><path d="M7.5 12h6"></path></svg>
+</button>
+<sc-if value="{{ c5.focused }}" hint-placeholder-val="{{ false }}"><span style="font-size: 22px; white-space: nowrap">{{ c5.label }}</span></sc-if>
+</div>
+
+<div style="display: flex; flex-direction: column; align-items: center; gap: 10px; width: 80px">
+<button type="button" aria-label="{{ c6.label }}" onClick="{{ c6.click }}" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 40px; background: {{ c6.bg }}; color: {{ c6.fg }}; cursor: pointer">
+<svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9.5"></circle><path d="M12 11v6"></path><path d="M12 7.3v.2"></path></svg>
+</button>
+<sc-if value="{{ c6.focused }}" hint-placeholder-val="{{ false }}"><span style="font-size: 22px; white-space: nowrap">{{ c6.label }}</span></sc-if>
+</div>
+</div>
+</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ showList }}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; inset: 0; background: rgba(8,12,18,0.72)">
+<div style="position: absolute; left: 0; top: 0; width: 420px; height: 1080px; box-sizing: border-box; background: #2a2e37; padding: 64px 0">
+<h2 style="margin: 0 0 28px; padding: 0 64px; font-size: 26px; font-weight: 700">Sender filtern</h2>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<sc-for list="{{ filters }}" as="f" hint-placeholder-count="7">
+<button type="button" onClick="{{ f.pick }}" style="display: flex; align-items: center; justify-content: space-between; height: 72px; padding: 0 40px 0 61px; border: 3px solid {{ f.ring }}; background: {{ f.bg }}; color: #ffffff; font-family: 'Open Sans', Arial, sans-serif; font-size: 30px; font-weight: {{ f.weight }}; text-align: left; cursor: pointer">
+<span>{{ f.label }}</span>
+<span style="font-size: 20px; font-weight: 600; color: #c3cad3">{{ f.count }}</span>
+</button>
+</sc-for>
+</div>
+</div>
+
+<div style="position: absolute; left: 450px; top: 64px; display: flex; flex-direction: column; gap: 16px">
+<sc-for list="{{ rows }}" as="r" hint-placeholder-count="5">
+<div style="display: flex; align-items: center; gap: 0">
+<button type="button" onClick="{{ r.pick }}" aria-label="{{ r.aria }}" style="display: flex; align-items: center; padding: 0; border: 0; background: transparent; color: #ffffff; font-family: 'Open Sans', Arial, sans-serif; text-align: left; cursor: pointer">
+<span style="width: 120px; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 0 8px; box-sizing: border-box">
+<span style="font-size: 28px; font-weight: 700">{{ r.num }}</span>
+<span style="font-size: 16px; font-weight: 600; color: #d5dbe2; text-align: center; line-height: 1.25">{{ r.name }}</span>
+</span>
+<sc-if value="{{ r.plain }}" hint-placeholder-val="{{ true }}">
+<span style="position: relative; display: flex; flex-direction: column; justify-content: flex-end; width: 520px; height: 150px; box-sizing: border-box; padding: 0 22px 20px; border-radius: 8px; overflow: hidden; {{ r.thumb }}">
+<span style="position: absolute; left: 18px; top: 16px; padding: 2px 8px; border-radius: 4px; background: {{ accent }}; color: #0b1118; font-size: 18px; font-weight: 700">Jetzt</span>
+<span style="font-size: 26px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{ r.title }}</span>
+<span style="position: absolute; left: 0; right: 0; bottom: 0; height: 5px; background: rgba(255,255,255,0.85)"><span style="display: block; height: 5px; width: {{ r.pct }}; background: {{ accent }}"></span></span>
+</span>
+</sc-if>
+<sc-if value="{{ r.focused }}" hint-placeholder-val="{{ false }}">
+<span style="display: flex; width: 1000px; height: 210px; box-sizing: border-box; border: 4px solid {{ r.ring }}; border-radius: 10px; overflow: hidden; background: #3a3e48">
+<span style="position: relative; width: 340px; height: 202px; flex-shrink: 0; {{ r.thumb }}">
+<span style="position: absolute; left: 16px; top: 14px; padding: 2px 8px; border-radius: 4px; background: {{ accent }}; color: #0b1118; font-size: 18px; font-weight: 700">Jetzt</span>
+<span style="position: absolute; left: 0; right: 0; bottom: 0; height: 5px; background: rgba(255,255,255,0.85)"><span style="display: block; height: 5px; width: {{ r.pct }}; background: {{ accent }}"></span></span>
+</span>
+<span style="display: flex; flex-direction: column; gap: 4px; padding: 16px 24px; min-width: 0">
+<span style="font-size: 30px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{ r.title }}</span>
+<span style="font-size: 22px; font-weight: 600">{{ r.sub }}</span>
+<span style="font-size: 22px; font-weight: 600">{{ r.genre }}</span>
+<span style="font-size: 22px; font-weight: 600; color: {{ accent }}">{{ r.time }}</span>
+<span style="display: flex; gap: 8px; margin-top: 6px">
+<sc-for list="{{ r.badges }}" as="b" hint-placeholder-count="2">
+<span aria-label="{{ b.aria }}" style="display: inline-flex; align-items: center; gap: 4px; height: 26px; padding: 0 7px; box-sizing: border-box; border-radius: 4px; font-size: 15px; font-weight: 700; {{ b.css }}">{{ b.label }}</span>
+</sc-for>
+</span>
+</span>
+</span>
+</sc-if>
+</button>
+<sc-if value="{{ r.focused }}" hint-placeholder-val="{{ false }}">
+<span style="position: relative; display: flex; flex-direction: column; justify-content: flex-end; width: 300px; height: 168px; margin-left: 20px; box-sizing: border-box; padding: 0 16px 16px; border-radius: 8px; overflow: hidden; {{ r.nextThumb }}">
+<span style="position: absolute; left: 14px; top: 14px; padding: 2px 8px; border-radius: 4px; background: #ffffff; color: #0b1118; font-size: 17px; font-weight: 700">Im Anschluss</span>
+<span style="font-size: 22px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{ r.next }}</span>
+</span>
+</sc-if>
+</div>
+</sc-for>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ showAudio }}" hint-placeholder-val="{{ false }}">
+<button type="button" aria-label="Audio und Untertitel schließen" onClick="{{ closeLayer }}" style="position: absolute; left: 0; top: 0; width: 1290px; height: 1080px; padding: 0; border: 0; background: transparent; cursor: pointer"></button>
+<div style="position: absolute; right: 0; top: 0; width: 630px; height: 1080px; box-sizing: border-box; background: #262b34; padding: 56px 56px; display: flex; flex-direction: column; gap: 18px; overflow-y: auto; overflow-x: hidden; scrollbar-width: none">
+<h2 style="margin: 0; font-size: 34px; font-weight: 700">Audio</h2>
+<p style="margin: 0; font-size: 18px; line-height: 1.5; color: #c9d1da">Ihre Auswahl gilt auf diesem Gerät für alle Inhalte. Ist sie auf einem Sender nicht verfügbar, läuft der Inhalt auf Deutsch bzw. ohne Untertitel. Sprachversionen werden vom Sender zur Verfügung gestellt und können je nach Sendung abweichen.</p>
+
+<button type="button" role="switch" aria-checked="{{ dolby.checked }}" onClick="{{ dolby.click }}" style="display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 8px 16px; border: 3px solid {{ dolby.ring }}; border-radius: 8px; background: transparent; color: #ffffff; font-family: 'Open Sans', Arial, sans-serif; text-align: left; cursor: pointer">
+<span style="display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 22px; font-weight: {{ dolby.weight }}">Dolby Audio, wenn verfügbar</span>
+<sc-if value="{{ dolby.missing }}" hint-placeholder-val="{{ false }}"><span style="font-size: 16px; color: #aab5c1">Auf diesem Sender nicht verfügbar</span></sc-if>
+</span>
+<span style="display: flex; align-items: center; justify-content: {{ dolby.knobAlign }}; width: 64px; height: 36px; padding: 4px; box-sizing: border-box; border-radius: 18px; background: {{ dolby.trackBg }}; flex-shrink: 0">
+<span style="display: block; width: 28px; height: 28px; border-radius: 50%; background: {{ dolby.knobBg }}"></span>
+</span>
+</button>
+
+<div style="display: flex; flex-direction: column; gap: 4px">
+<sc-for list="{{ audioItems }}" as="t" hint-placeholder-count="2">
+<button type="button" onClick="{{ t.click }}" style="display: flex; align-items: center; justify-content: space-between; height: 58px; padding: 0 16px; border: 3px solid {{ t.ring }}; border-radius: 8px; background: transparent; color: #ffffff; font-family: 'Open Sans', Arial, sans-serif; font-size: 22px; font-weight: {{ t.weight }}; text-align: left; cursor: pointer">
+<span style="display: flex; align-items: center; gap: 12px">{{ t.label }}
+<sc-if value="{{ t.show51 }}" hint-placeholder-val="{{ false }}"><span style="display: inline-flex; align-items: center; height: 26px; padding: 0 7px; box-sizing: border-box; border: 2px solid rgba(255,255,255,0.8); border-radius: 4px; font-size: 15px; font-weight: 800">DD</span></sc-if>
+</span>
+<sc-if value="{{ t.active }}" hint-placeholder-val="{{ false }}"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-label="wird abgespielt" role="img"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></sc-if>
+</button>
+</sc-for>
+<sc-if value="{{ audioUnav.show }}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; align-items: center; min-height: 58px; padding: 6px 16px; border: 2px solid transparent; border-radius: 8px; box-sizing: border-box">
+<span style="display: flex; flex-direction: column">
+<span style="font-size: 22px; font-weight: 600; color: rgba(255,255,255,0.6)">{{ audioUnav.label }}</span>
+<span style="font-size: 16px; color: #aab5c1">Gespeichert · Auf diesem Sender nicht verfügbar</span>
+</span>
+</div>
+</sc-if>
+</div>
+
+<h2 style="margin: 18px 0 0; font-size: 34px; font-weight: 700">Untertitel</h2>
+
+<div style="display: flex; flex-direction: column; gap: 4px">
+<sc-for list="{{ subItems }}" as="t" hint-placeholder-count="2">
+<button type="button" onClick="{{ t.click }}" style="display: flex; align-items: center; justify-content: space-between; height: 58px; padding: 0 16px; border: 3px solid {{ t.ring }}; border-radius: 8px; background: transparent; color: #ffffff; font-family: 'Open Sans', Arial, sans-serif; font-size: 22px; font-weight: {{ t.weight }}; text-align: left; cursor: pointer">
+<span style="display: flex; align-items: center; gap: 12px">{{ t.label }}</span>
+<sc-if value="{{ t.active }}" hint-placeholder-val="{{ false }}"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-label="wird abgespielt" role="img"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></sc-if>
+</button>
+</sc-for>
+<sc-if value="{{ subUnav.show }}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; align-items: center; min-height: 58px; padding: 6px 16px; border: 2px solid transparent; border-radius: 8px; box-sizing: border-box">
+<span style="display: flex; flex-direction: column">
+<span style="font-size: 22px; font-weight: 600; color: rgba(255,255,255,0.6)">{{ subUnav.label }}</span>
+<span style="font-size: 16px; color: #aab5c1">Gespeichert · Auf diesem Sender nicht verfügbar</span>
+</span>
+</div>
+</sc-if>
+</div>
+
+<div style="margin-top: auto; padding-top: 18px; border-top: 1px solid rgba(255,255,255,0.15); display: flex; flex-direction: column; gap: 10px">
+<span style="font-size: 16px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: #aab5c1">Zeichenerklärung</span>
+<div style="display: flex; align-items: center; gap: 28px; flex-wrap: wrap">
+<span style="display: flex; align-items: center; gap: 10px; font-size: 18px; color: #c9d1da">
+<span style="display: inline-flex; align-items: center; height: 28px; padding: 0 8px; box-sizing: border-box; border: 2px solid rgba(255,255,255,0.8); border-radius: 4px; font-size: 15px; font-weight: 700; color: #ffffff">UT</span>
+Verfügbar</span>
+<span style="display: flex; align-items: center; gap: 10px; font-size: 18px; color: #c9d1da">
+<span style="display: inline-flex; align-items: center; height: 28px; padding: 0 8px; box-sizing: border-box; border: 2px solid #ffffff; background: #ffffff; border-radius: 4px; font-size: 15px; font-weight: 700; color: #0b1118">UT</span>
+Ihre Einstellung ist aktiv</span>
+</div>
+<p style="margin: 0; font-size: 16px; line-height: 1.45; color: #aab5c1">DD = Dolby Audio · UT = Untertitel · AD = Audiodeskription · Mehrsprachig = weitere Tonsprachen</p>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ showInfoLayer }}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(5,8,12,0.55)">
+<div role="dialog" aria-label="Sendungsinfo" style="width: 1180px; box-sizing: border-box; padding: 56px 64px; border-radius: 16px; background: #1b222c; border: 1px solid rgba(255,255,255,0.15); display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap">
+<span style="font-size: 28px; font-weight: 400">{{ chNum }} | {{ chName }}</span>
+<sc-for list="{{ hdrBadges }}" as="i" hint-placeholder-count="3">
+<span aria-label="{{ i.aria }}" style="display: inline-flex; align-items: center; height: 32px; padding: 0 9px; box-sizing: border-box; border-radius: 4px; font-size: 18px; font-weight: 700; {{ i.css }}">{{ i.label }}</span>
+</sc-for>
+</div>
+<h2 style="margin: 10px 0 0; font-size: 46px; line-height: 1.25; font-weight: 600">{{ title }}</h2>
+<p style="margin: 0; font-size: 26px; font-weight: 600">{{ subtitle }}</p>
+<p style="margin: 0; font-size: 26px; font-weight: 600">{{ genre }}</p>
+<p style="margin: 0; font-size: 26px; font-weight: 600; color: {{ accent }}">{{ timeLine }}</p>
+<p style="margin: 18px 0 0; font-size: 24px; line-height: 1.55; color: #d5dbe2">[Beschreibungstext der laufenden Sendung: Inhalt, Mitwirkende und weitere Details, zwei bis vier Zeilen.]</p>
+<button type="button" onClick="{{ closeInfo }}" style="align-self: flex-start; margin-top: 26px; padding: 14px 34px; border: 0; border-radius: 28px; background: #ffffff; color: #0b1118; font-family: 'Open Sans', Arial, sans-serif; font-size: 22px; font-weight: 700; cursor: pointer">Schließen</button>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+<div role="status" style="position: absolute; top: 56px; right: 64px; max-width: 720px; display: flex; align-items: flex-start; gap: 14px; padding: 16px 24px; border-radius: 8px; background: rgba(20,24,32,0.94); border: 1px solid rgba(255,255,255,0.25)">
+<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="flex-shrink: 0; margin-top: 2px"><circle cx="12" cy="12" r="9.5"></circle><path d="M12 11v6"></path><path d="M12 7.3v.2"></path></svg>
+<span style="display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 24px; font-weight: 600; line-height: 1.35">{{ toast }}</span>
+<sc-if value="{{ hasToastSub }}" hint-placeholder-val="{{ false }}"><span style="font-size: 18px; color: #c3cad3">{{ toastSub }}</span></sc-if>
+</span>
+</div>
+</sc-if>
+</div>
+
+<div style="width: 360px; height: 1080px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; background: #11151b">
+<button type="button" onClick="{{ exitProto }}" style="display: flex; align-items: center; gap: 10px; margin-bottom: 18px; padding: 14px 30px 14px 24px; border: 2px solid #4d8fd9; border-radius: 30px; background: #1d4a86; color: #ffffff; font-family: 'Open Sans', Arial, sans-serif; font-size: 20px; font-weight: 700; cursor: pointer"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11l8-7 8 7"></path><path d="M6 10v10h12V10"></path></svg>Startseite</button>
+<span style="font-size: 22px; font-weight: 700; color: #ffffff">Prototyp 1</span>
+<div role="group" aria-label="Virtuelle Fernbedienung" style="width: 196px; padding: 44px 0 48px; box-sizing: border-box; border-radius: 52px; background: #1d2027; border: 1px solid rgba(255,255,255,0.12); display: flex; flex-direction: column; align-items: center; gap: 28px">
+<div style="position: relative; width: 164px; height: 164px; border-radius: 50%; background: #2b2f37">
+<button type="button" aria-label="Hoch" onClick="{{ rc.up }}" style="position: absolute; display: flex; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 10px; background: transparent; color: #ffffff; cursor: pointer; left: 52px; top: 4px; width: 60px; height: 40px"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"></path></svg></button>
+<button type="button" aria-label="Runter" onClick="{{ rc.down }}" style="position: absolute; display: flex; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 10px; background: transparent; color: #ffffff; cursor: pointer; left: 52px; top: 120px; width: 60px; height: 40px"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></button>
+<button type="button" aria-label="Links" onClick="{{ rc.left }}" style="position: absolute; display: flex; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 10px; background: transparent; color: #ffffff; cursor: pointer; left: 4px; top: 52px; width: 40px; height: 60px"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg></button>
+<button type="button" aria-label="Rechts" onClick="{{ rc.right }}" style="position: absolute; display: flex; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 10px; background: transparent; color: #ffffff; cursor: pointer; left: 120px; top: 52px; width: 40px; height: 60px"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></button>
+<button type="button" aria-label="OK" onClick="{{ rc.ok }}" style="position: absolute; left: 44px; top: 44px; width: 76px; height: 76px; padding: 0; border: 0; border-radius: 50%; background: #41464f; color: #ffffff; font-family: 'Open Sans', Arial, sans-serif; font-size: 17px; font-weight: 700; cursor: pointer">OK</button>
+</div>
+<div style="display: flex; gap: 14px">
+<button type="button" aria-label="Zurück" onClick="{{ rc.back }}" style="display: flex; align-items: center; justify-content: center; width: 52px; height: 52px; padding: 0; border: 0; border-radius: 50%; background: #2b2f37; color: #ffffff; cursor: pointer"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14L4 9l5-5"></path><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"></path></svg></button>
+<button type="button" aria-label="Home" onClick="{{ rc.home }}" style="display: flex; align-items: center; justify-content: center; width: 52px; height: 52px; padding: 0; border: 0; border-radius: 50%; background: #2b2f37; color: #ffffff; cursor: pointer"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11l8-7 8 7"></path><path d="M6 10v10h12V10"></path></svg></button>
+<button type="button" aria-label="Menü" onClick="{{ rc.menu }}" style="display: flex; align-items: center; justify-content: center; width: 52px; height: 52px; padding: 0; border: 0; border-radius: 50%; background: #2b2f37; color: #ffffff; cursor: pointer"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 7h14"></path><path d="M5 12h14"></path><path d="M5 17h14"></path></svg></button>
+</div>
+<div style="display: flex; gap: 14px">
+<button type="button" aria-label="Zurückspulen" onClick="{{ rc.rew }}" style="display: flex; align-items: center; justify-content: center; width: 52px; height: 52px; padding: 0; border: 0; border-radius: 50%; background: #2b2f37; color: #ffffff; cursor: pointer"><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 6l-7 6 7 6z"></path><path d="M20 6l-7 6 7 6z"></path></svg></button>
+<button type="button" aria-label="Wiedergabe oder Pause" onClick="{{ rc.play }}" style="display: flex; align-items: center; justify-content: center; width: 52px; height: 52px; padding: 0; border: 0; border-radius: 50%; background: #2b2f37; color: #ffffff; cursor: pointer"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6l7 6-7 6z" fill="currentColor"></path><path d="M15 6v12"></path><path d="M19.5 6v12"></path></svg></button>
+<button type="button" aria-label="Vorspulen" onClick="{{ rc.ff }}" style="display: flex; align-items: center; justify-content: center; width: 52px; height: 52px; padding: 0; border: 0; border-radius: 50%; background: #2b2f37; color: #ffffff; cursor: pointer"><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6l7 6-7 6z"></path><path d="M13 6l7 6-7 6z"></path></svg></button>
+</div>
+<div style="display: flex; flex-direction: column; align-items: center; width: 56px; border-radius: 28px; background: #2b2f37; overflow: hidden">
+<button type="button" aria-label="Nächster Sender" onClick="{{ rc.chUp }}" style="display: flex; align-items: center; justify-content: center; width: 56px; height: 52px; padding: 0; border: 0; background: transparent; color: #ffffff; cursor: pointer"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6v12"></path><path d="M6 12h12"></path></svg></button>
+<span aria-hidden="true" style="font-size: 14px; font-weight: 700; color: #aab5c1">CH</span>
+<button type="button" aria-label="Vorheriger Sender" onClick="{{ rc.chDown }}" style="display: flex; align-items: center; justify-content: center; width: 56px; height: 52px; padding: 0; border: 0; background: transparent; color: #ffffff; cursor: pointer"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 12h12"></path></svg></button>
+</div>
+</div>
+<p style="margin: 0; font-size: 15px; line-height: 1.5; color: #9aa3ad; text-align: center">Oder per Tastatur:<br>Pfeile · Enter · Backspace</p>
+</div>
+</div></template>
+<template id="tpl-2"><div ref="{{ rootRef }}" tabIndex="0" onKeyDown="{{ onKey }}" onMouseEnter="{{ onEnter }}" aria-label="LiveTV-Player. Bedienung per virtueller Fernbedienung oder mit Pfeiltasten, Enter und Backspace." style="width: 2280px; height: 1080px; display: flex; background: #11151b; color: #ffffff; font-family: 'Open Sans', Arial, sans-serif; outline: none">
+<div style="width: 1920px; height: 1080px; position: relative; overflow: hidden; flex-shrink: 0; background: {{ videoBg }}">
+
+<div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: rgba(255,255,255,0.22)" aria-hidden="true">
+<span style="font-size: 28px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase">Videobild</span>
+<span style="font-size: 24px; font-weight: 600">{{ chName }}</span>
+</div>
+
+<sc-if value="{{ showStream }}" hint-placeholder-val="{{ false }}">
+<button type="button" aria-label="Player-Steuerung öffnen" onClick="{{ openControlsClick }}" style="position: absolute; inset: 0; padding: 0; border: 0; background: transparent; cursor: pointer"></button>
+</sc-if>
+
+<sc-if value="{{ showZap }}" hint-placeholder-val="{{ false }}">
+<div aria-live="polite" style="position: absolute; left: 0; top: 0; right: 0; height: 560px; background: linear-gradient(rgba(8,12,18,0.88), rgba(8,12,18,0.6) 60%, rgba(8,12,18,0)); pointer-events: none">
+<div style="position: absolute; left: 204px; top: 62px; width: 1340px; display: flex; flex-direction: column">
+<div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap">
+<span style="font-size: 30px; font-weight: 400">{{ chNum }} | {{ chName }}</span>
+<sc-for list="{{ hdrBadges }}" as="z" hint-placeholder-count="3">
+<span aria-label="{{ z.aria }}" style="display: inline-flex; align-items: center; height: 34px; padding: 0 9px; box-sizing: border-box; border-radius: 4px; font-size: 19px; font-weight: 700; {{ z.css }}">{{ z.label }}</span>
+</sc-for>
+</div>
+<h1 style="margin: 22px 0 0; font-size: 50px; line-height: 1.3; font-weight: 600; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden">{{ title }}</h1>
+<p style="margin: 10px 0 0; font-size: 28px; font-weight: 600">{{ subtitle }}</p>
+<p style="margin: 8px 0 0; font-size: 28px; font-weight: 600">{{ genre }}</p>
+<p style="margin: 8px 0 0; font-size: 28px; font-weight: 600; color: {{ accent }}">{{ timeLine }}</p>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ showOverlay }}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; inset: 0; background: rgba(8,12,18,0.62)">
+<button type="button" aria-label="Zurück" onClick="{{ hideOverlay }}" style="position: absolute; left: 96px; top: 64px; width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 32px; background: transparent; color: #ffffff; cursor: pointer">
+<svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12H4"></path><path d="M10 6l-6 6 6 6"></path></svg>
+</button>
+
+<div style="position: absolute; left: 204px; top: 62px; width: 1340px; display: flex; flex-direction: column">
+<div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap">
+<span style="font-size: 30px; font-weight: 400">{{ chNum }} | {{ chName }}</span>
+<sc-for list="{{ hdrBadges }}" as="b" hint-placeholder-count="3">
+<span aria-label="{{ b.aria }}" style="display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 9px; box-sizing: border-box; border-radius: 4px; font-size: 19px; font-weight: 700; {{ b.css }}"><sc-if value="{{ b.active }}" hint-placeholder-val="{{ false }}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></sc-if>{{ b.label }}</span>
+</sc-for>
+</div>
+<h1 style="margin: 22px 0 0; font-size: 50px; line-height: 1.3; font-weight: 600; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden">{{ title }}</h1>
+<p style="margin: 10px 0 0; font-size: 28px; font-weight: 600">{{ subtitle }}</p>
+<p style="margin: 8px 0 0; font-size: 28px; font-weight: 600">{{ genre }}</p>
+<p style="margin: 8px 0 0; font-size: 28px; font-weight: 600; color: {{ accent }}">{{ timeLine }}</p>
+<sc-if value="{{ showInfo }}" hint-placeholder-val="{{ false }}">
+<p style="margin: 24px 0 0; max-width: 1040px; font-size: 24px; line-height: 1.5; color: #d5dbe2">[Beschreibungstext der laufenden Sendung, zwei bis drei Zeilen]</p>
+</sc-if>
+</div>
+
+<div style="position: absolute; left: 204px; right: 206px; bottom: 56px; display: flex; flex-direction: column">
+<div style="height: 4px; border-radius: 2px; background: rgba(255,255,255,0.9); overflow: hidden">
+<div style="height: 4px; width: {{ pct }}; background: {{ accent }}"></div>
+</div>
+<div style="display: flex; justify-content: space-between; margin-top: 12px; font-size: 22px; color: #e6eaee">
+<span>{{ startTime }}</span>
+<span>{{ endTime }}</span>
+</div>
+
+<div style="display: flex; align-items: flex-start; margin-top: 18px; height: 128px">
+<button type="button" onClick="{{ c0.click }}" style="display: flex; align-items: center; gap: 22px; height: 80px; padding: 0 40px 0 42px; border: 0; border-radius: 40px; background: {{ c0.bg }}; color: {{ c0.fg }}; font-family: 'Open Sans', Arial, sans-serif; font-size: 32px; font-weight: 600; cursor: pointer">
+<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M9 6h11"></path><path d="M9 12h11"></path><path d="M9 18h11"></path><path d="M4 6h.01"></path><path d="M4 12h.01"></path><path d="M4 18h.01"></path></svg>
+Senderliste
+</button>
+
+<div style="display: flex; align-items: flex-start; gap: 34px; margin-left: 190px">
+<div style="display: flex; flex-direction: column; align-items: center; gap: 10px; width: 80px">
+<button type="button" aria-label="Sendung von Beginn" onClick="{{ c1.click }}" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 40px; background: {{ c1.bg }}; color: {{ c1.fg }}; cursor: pointer">
+<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 5v14"></path><path d="M19 5L9 12l10 7z" fill="currentColor"></path></svg>
+</button>
+<sc-if value="{{ c1.focused }}" hint-placeholder-val="{{ false }}"><span style="font-size: 22px; white-space: nowrap">{{ c1.label }}</span></sc-if>
+</div>
+
+<div style="display: flex; flex-direction: column; align-items: center; gap: 10px; width: 80px">
+<button type="button" aria-label="{{ c2.label }}" onClick="{{ c2.click }}" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 40px; background: {{ c2.bg }}; color: {{ c2.fg }}; cursor: pointer">
+<sc-if value="{{ isPlaying }}" hint-placeholder-val="{{ true }}">
+<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M8.5 5v14"></path><path d="M15.5 5v14"></path></svg>
+</sc-if>
+<sc-if value="{{ isPaused }}" hint-placeholder-val="{{ false }}">
+<svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M8 5l11 7-11 7z"></path></svg>
+</sc-if>
+</button>
+<sc-if value="{{ c2.focused }}" hint-placeholder-val="{{ true }}"><span style="font-size: 22px; white-space: nowrap">{{ c2.label }}</span></sc-if>
+</div>
+
+<div style="display: flex; flex-direction: column; align-items: center; gap: 10px; min-width: 110px">
+<button type="button" aria-label="{{ c3.label }}" onClick="{{ c3.click }}" style="height: 80px; padding: 0 18px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 40px; background: {{ c3.bg }}; color: {{ liveFg }}; font-family: 'Open Sans', Arial, sans-serif; font-size: 34px; font-weight: 800; letter-spacing: 0.02em; cursor: pointer">LIVE</button>
+<sc-if value="{{ c3.focused }}" hint-placeholder-val="{{ false }}"><span style="font-size: 22px; white-space: nowrap">{{ c3.label }}</span></sc-if>
+</div>
+
+<div style="display: flex; flex-direction: column; align-items: center; gap: 10px; width: 80px">
+<button type="button" aria-label="{{ c4.label }}" onClick="{{ c4.click }}" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 40px; background: {{ c4.bg }}; color: {{ c4.fg }}; cursor: pointer">
+<svg width="58" height="58" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.6"></circle><circle cx="12" cy="12" r="{{ recR }}" fill="#e5173f"></circle></svg>
+</button>
+<sc-if value="{{ c4.focused }}" hint-placeholder-val="{{ false }}"><span style="font-size: 22px; white-space: nowrap">{{ c4.label }}</span></sc-if>
+</div>
+
+<div style="display: flex; flex-direction: column; align-items: center; gap: 10px; width: 80px">
+<button type="button" aria-label="Audio und Untertitel" onClick="{{ c5.click }}" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 40px; background: {{ c5.bg }}; color: {{ c5.fg }}; cursor: pointer">
+<svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 4.5h17v11.5h-9.5l-4.5 4v-4h-3z"></path><path d="M7.5 8.5h9"></path><path d="M7.5 12h6"></path></svg>
+</button>
+<sc-if value="{{ c5.focused }}" hint-placeholder-val="{{ false }}"><span style="font-size: 22px; white-space: nowrap">{{ c5.label }}</span></sc-if>
+</div>
+
+<div style="display: flex; flex-direction: column; align-items: center; gap: 10px; width: 80px">
+<button type="button" aria-label="{{ c6.label }}" onClick="{{ c6.click }}" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 40px; background: {{ c6.bg }}; color: {{ c6.fg }}; cursor: pointer">
+<svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9.5"></circle><path d="M12 11v6"></path><path d="M12 7.3v.2"></path></svg>
+</button>
+<sc-if value="{{ c6.focused }}" hint-placeholder-val="{{ false }}"><span style="font-size: 22px; white-space: nowrap">{{ c6.label }}</span></sc-if>
+</div>
+</div>
+</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ showList }}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; inset: 0; background: rgba(8,12,18,0.72)">
+<div style="position: absolute; left: 0; top: 0; width: 420px; height: 1080px; box-sizing: border-box; background: #2a2e37; padding: 64px 0">
+<h2 style="margin: 0 0 28px; padding: 0 64px; font-size: 26px; font-weight: 700">Sender filtern</h2>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<sc-for list="{{ filters }}" as="f" hint-placeholder-count="7">
+<button type="button" onClick="{{ f.pick }}" style="display: flex; align-items: center; justify-content: space-between; height: 72px; padding: 0 40px 0 61px; border: 3px solid {{ f.ring }}; background: {{ f.bg }}; color: #ffffff; font-family: 'Open Sans', Arial, sans-serif; font-size: 30px; font-weight: {{ f.weight }}; text-align: left; cursor: pointer">
+<span>{{ f.label }}</span>
+<span style="font-size: 20px; font-weight: 600; color: #c3cad3">{{ f.count }}</span>
+</button>
+</sc-for>
+</div>
+</div>
+
+<div style="position: absolute; left: 450px; top: 64px; display: flex; flex-direction: column; gap: 16px">
+<sc-for list="{{ rows }}" as="r" hint-placeholder-count="5">
+<div style="display: flex; align-items: center; gap: 0">
+<button type="button" onClick="{{ r.pick }}" aria-label="{{ r.aria }}" style="display: flex; align-items: center; padding: 0; border: 0; background: transparent; color: #ffffff; font-family: 'Open Sans', Arial, sans-serif; text-align: left; cursor: pointer">
+<span style="width: 120px; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 0 8px; box-sizing: border-box">
+<span style="font-size: 28px; font-weight: 700">{{ r.num }}</span>
+<span style="font-size: 16px; font-weight: 600; color: #d5dbe2; text-align: center; line-height: 1.25">{{ r.name }}</span>
+</span>
+<sc-if value="{{ r.plain }}" hint-placeholder-val="{{ true }}">
+<span style="position: relative; display: flex; flex-direction: column; justify-content: flex-end; width: 520px; height: 150px; box-sizing: border-box; padding: 0 22px 20px; border-radius: 8px; overflow: hidden; {{ r.thumb }}">
+<span style="position: absolute; left: 18px; top: 16px; padding: 2px 8px; border-radius: 4px; background: {{ accent }}; color: #0b1118; font-size: 18px; font-weight: 700">Jetzt</span>
+<span style="font-size: 26px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{ r.title }}</span>
+<span style="position: absolute; left: 0; right: 0; bottom: 0; height: 5px; background: rgba(255,255,255,0.85)"><span style="display: block; height: 5px; width: {{ r.pct }}; background: {{ accent }}"></span></span>
+</span>
+</sc-if>
+<sc-if value="{{ r.focused }}" hint-placeholder-val="{{ false }}">
+<span style="display: flex; width: 1000px; height: 210px; box-sizing: border-box; border: 4px solid {{ r.ring }}; border-radius: 10px; overflow: hidden; background: #3a3e48">
+<span style="position: relative; width: 340px; height: 202px; flex-shrink: 0; {{ r.thumb }}">
+<span style="position: absolute; left: 16px; top: 14px; padding: 2px 8px; border-radius: 4px; background: {{ accent }}; color: #0b1118; font-size: 18px; font-weight: 700">Jetzt</span>
+<span style="position: absolute; left: 0; right: 0; bottom: 0; height: 5px; background: rgba(255,255,255,0.85)"><span style="display: block; height: 5px; width: {{ r.pct }}; background: {{ accent }}"></span></span>
+</span>
+<span style="display: flex; flex-direction: column; gap: 4px; padding: 16px 24px; min-width: 0">
+<span style="font-size: 30px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{ r.title }}</span>
+<span style="font-size: 22px; font-weight: 600">{{ r.sub }}</span>
+<span style="font-size: 22px; font-weight: 600">{{ r.genre }}</span>
+<span style="font-size: 22px; font-weight: 600; color: {{ accent }}">{{ r.time }}</span>
+<span style="display: flex; gap: 8px; margin-top: 6px">
+<sc-for list="{{ r.badges }}" as="b" hint-placeholder-count="2">
+<span aria-label="{{ b.aria }}" style="display: inline-flex; align-items: center; gap: 4px; height: 26px; padding: 0 7px; box-sizing: border-box; border-radius: 4px; font-size: 15px; font-weight: 700; {{ b.css }}"><sc-if value="{{ b.active }}" hint-placeholder-val="{{ false }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></sc-if>{{ b.label }}</span>
+</sc-for>
+</span>
+</span>
+</span>
+</sc-if>
+</button>
+<sc-if value="{{ r.focused }}" hint-placeholder-val="{{ false }}">
+<span style="position: relative; display: flex; flex-direction: column; justify-content: flex-end; width: 300px; height: 168px; margin-left: 20px; box-sizing: border-box; padding: 0 16px 16px; border-radius: 8px; overflow: hidden; {{ r.nextThumb }}">
+<span style="position: absolute; left: 14px; top: 14px; padding: 2px 8px; border-radius: 4px; background: #ffffff; color: #0b1118; font-size: 17px; font-weight: 700">Im Anschluss</span>
+<span style="font-size: 22px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{ r.next }}</span>
+</span>
+</sc-if>
+</div>
+</sc-for>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ showAudio }}" hint-placeholder-val="{{ false }}">
+<button type="button" aria-label="Audio und Untertitel schließen" onClick="{{ closeLayer }}" style="position: absolute; left: 0; top: 0; width: 1290px; height: 1080px; padding: 0; border: 0; background: transparent; cursor: pointer"></button>
+<div style="position: absolute; right: 0; top: 0; width: 630px; height: 1080px; box-sizing: border-box; background: #262b34; padding: 56px 56px; display: flex; flex-direction: column; gap: 18px; overflow-y: auto; overflow-x: hidden; scrollbar-width: none">
+<h2 style="margin: 0; font-size: 34px; font-weight: 700">Audio</h2>
+<p style="margin: 0; font-size: 18px; line-height: 1.5; color: #c9d1da">Ihre Auswahl gilt auf diesem Gerät für alle Inhalte. Ist sie auf einem Sender nicht verfügbar, läuft der Inhalt auf Deutsch bzw. ohne Untertitel. Sprachversionen werden vom Sender zur Verfügung gestellt und können je nach Sendung abweichen.</p>
+
+<div style="display: flex; flex-direction: column; gap: 4px">
+<sc-for list="{{ audioItems }}" as="t" hint-placeholder-count="2">
+<button type="button" aria-pressed="{{ t.pressed }}" onClick="{{ t.click }}" style="display: flex; align-items: center; justify-content: space-between; height: 58px; padding: 0 16px; border: 3px solid {{ t.ring }}; border-radius: 8px; background: transparent; color: #ffffff; font-family: 'Open Sans', Arial, sans-serif; font-size: 22px; font-weight: {{ t.weight }}; text-align: left; cursor: pointer">
+<span>{{ t.label }}</span>
+<sc-if value="{{ t.current }}" hint-placeholder-val="{{ false }}"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></sc-if>
+</button>
+</sc-for>
+</div>
+
+<h2 style="margin: 18px 0 0; font-size: 34px; font-weight: 700">Untertitel</h2>
+
+<div style="display: flex; flex-direction: column; gap: 4px">
+<sc-for list="{{ subItems }}" as="t" hint-placeholder-count="2">
+<button type="button" aria-pressed="{{ t.pressed }}" onClick="{{ t.click }}" style="display: flex; align-items: center; justify-content: space-between; height: 58px; padding: 0 16px; border: 3px solid {{ t.ring }}; border-radius: 8px; background: transparent; color: #ffffff; font-family: 'Open Sans', Arial, sans-serif; font-size: 22px; font-weight: {{ t.weight }}; text-align: left; cursor: pointer">
+<span>{{ t.label }}</span>
+<sc-if value="{{ t.current }}" hint-placeholder-val="{{ false }}"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></sc-if>
+</button>
+</sc-for>
+</div>
+
+</div>
+</sc-if>
+
+<sc-if value="{{ showInfoLayer }}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(5,8,12,0.55)">
+<div role="dialog" aria-label="Sendungsinfo" style="width: 1180px; box-sizing: border-box; padding: 56px 64px; border-radius: 16px; background: #1b222c; border: 1px solid rgba(255,255,255,0.15); display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap">
+<span style="font-size: 28px; font-weight: 400">{{ chNum }} | {{ chName }}</span>
+<sc-for list="{{ hdrBadges }}" as="i" hint-placeholder-count="3">
+<span aria-label="{{ i.aria }}" style="display: inline-flex; align-items: center; height: 32px; padding: 0 9px; box-sizing: border-box; border-radius: 4px; font-size: 18px; font-weight: 700; {{ i.css }}">{{ i.label }}</span>
+</sc-for>
+</div>
+<h2 style="margin: 10px 0 0; font-size: 46px; line-height: 1.25; font-weight: 600">{{ title }}</h2>
+<p style="margin: 0; font-size: 26px; font-weight: 600">{{ subtitle }}</p>
+<p style="margin: 0; font-size: 26px; font-weight: 600">{{ genre }}</p>
+<p style="margin: 0; font-size: 26px; font-weight: 600; color: {{ accent }}">{{ timeLine }}</p>
+<p style="margin: 18px 0 0; font-size: 24px; line-height: 1.55; color: #d5dbe2">[Beschreibungstext der laufenden Sendung: Inhalt, Mitwirkende und weitere Details, zwei bis vier Zeilen.]</p>
+<button type="button" onClick="{{ closeInfo }}" style="align-self: flex-start; margin-top: 26px; padding: 14px 34px; border: 0; border-radius: 28px; background: #ffffff; color: #0b1118; font-family: 'Open Sans', Arial, sans-serif; font-size: 22px; font-weight: 700; cursor: pointer">Schließen</button>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+<div role="status" style="position: absolute; top: 56px; right: 64px; max-width: 720px; display: flex; align-items: flex-start; gap: 14px; padding: 16px 24px; border-radius: 8px; background: rgba(20,24,32,0.94); border: 1px solid rgba(255,255,255,0.25)">
+<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="flex-shrink: 0; margin-top: 2px"><circle cx="12" cy="12" r="9.5"></circle><path d="M12 11v6"></path><path d="M12 7.3v.2"></path></svg>
+<span style="display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 24px; font-weight: 600; line-height: 1.35">{{ toast }}</span>
+<sc-if value="{{ hasToastSub }}" hint-placeholder-val="{{ false }}"><span style="font-size: 18px; color: #c3cad3">{{ toastSub }}</span></sc-if>
+</span>
+</div>
+</sc-if>
+</div>
+
+<div style="width: 360px; height: 1080px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; background: #11151b">
+<button type="button" onClick="{{ exitProto }}" style="display: flex; align-items: center; gap: 10px; margin-bottom: 18px; padding: 14px 30px 14px 24px; border: 2px solid #4d8fd9; border-radius: 30px; background: #1d4a86; color: #ffffff; font-family: 'Open Sans', Arial, sans-serif; font-size: 20px; font-weight: 700; cursor: pointer"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11l8-7 8 7"></path><path d="M6 10v10h12V10"></path></svg>Startseite</button>
+<span style="font-size: 22px; font-weight: 700; color: #ffffff">Prototyp 2</span>
+<div role="group" aria-label="Virtuelle Fernbedienung" style="width: 196px; padding: 44px 0 48px; box-sizing: border-box; border-radius: 52px; background: #1d2027; border: 1px solid rgba(255,255,255,0.12); display: flex; flex-direction: column; align-items: center; gap: 28px">
+<div style="position: relative; width: 164px; height: 164px; border-radius: 50%; background: #2b2f37">
+<button type="button" aria-label="Hoch" onClick="{{ rc.up }}" style="position: absolute; display: flex; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 10px; background: transparent; color: #ffffff; cursor: pointer; left: 52px; top: 4px; width: 60px; height: 40px"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"></path></svg></button>
+<button type="button" aria-label="Runter" onClick="{{ rc.down }}" style="position: absolute; display: flex; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 10px; background: transparent; color: #ffffff; cursor: pointer; left: 52px; top: 120px; width: 60px; height: 40px"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></button>
+<button type="button" aria-label="Links" onClick="{{ rc.left }}" style="position: absolute; display: flex; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 10px; background: transparent; color: #ffffff; cursor: pointer; left: 4px; top: 52px; width: 40px; height: 60px"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg></button>
+<button type="button" aria-label="Rechts" onClick="{{ rc.right }}" style="position: absolute; display: flex; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 10px; background: transparent; color: #ffffff; cursor: pointer; left: 120px; top: 52px; width: 40px; height: 60px"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></button>
+<button type="button" aria-label="OK" onClick="{{ rc.ok }}" style="position: absolute; left: 44px; top: 44px; width: 76px; height: 76px; padding: 0; border: 0; border-radius: 50%; background: #41464f; color: #ffffff; font-family: 'Open Sans', Arial, sans-serif; font-size: 17px; font-weight: 700; cursor: pointer">OK</button>
+</div>
+<div style="display: flex; gap: 14px">
+<button type="button" aria-label="Zurück" onClick="{{ rc.back }}" style="display: flex; align-items: center; justify-content: center; width: 52px; height: 52px; padding: 0; border: 0; border-radius: 50%; background: #2b2f37; color: #ffffff; cursor: pointer"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14L4 9l5-5"></path><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"></path></svg></button>
+<button type="button" aria-label="Home" onClick="{{ rc.home }}" style="display: flex; align-items: center; justify-content: center; width: 52px; height: 52px; padding: 0; border: 0; border-radius: 50%; background: #2b2f37; color: #ffffff; cursor: pointer"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11l8-7 8 7"></path><path d="M6 10v10h12V10"></path></svg></button>
+<button type="button" aria-label="Menü" onClick="{{ rc.menu }}" style="display: flex; align-items: center; justify-content: center; width: 52px; height: 52px; padding: 0; border: 0; border-radius: 50%; background: #2b2f37; color: #ffffff; cursor: pointer"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 7h14"></path><path d="M5 12h14"></path><path d="M5 17h14"></path></svg></button>
+</div>
+<div style="display: flex; gap: 14px">
+<button type="button" aria-label="Zurückspulen" onClick="{{ rc.rew }}" style="display: flex; align-items: center; justify-content: center; width: 52px; height: 52px; padding: 0; border: 0; border-radius: 50%; background: #2b2f37; color: #ffffff; cursor: pointer"><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 6l-7 6 7 6z"></path><path d="M20 6l-7 6 7 6z"></path></svg></button>
+<button type="button" aria-label="Wiedergabe oder Pause" onClick="{{ rc.play }}" style="display: flex; align-items: center; justify-content: center; width: 52px; height: 52px; padding: 0; border: 0; border-radius: 50%; background: #2b2f37; color: #ffffff; cursor: pointer"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6l7 6-7 6z" fill="currentColor"></path><path d="M15 6v12"></path><path d="M19.5 6v12"></path></svg></button>
+<button type="button" aria-label="Vorspulen" onClick="{{ rc.ff }}" style="display: flex; align-items: center; justify-content: center; width: 52px; height: 52px; padding: 0; border: 0; border-radius: 50%; background: #2b2f37; color: #ffffff; cursor: pointer"><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6l7 6-7 6z"></path><path d="M13 6l7 6-7 6z"></path></svg></button>
+</div>
+<div style="display: flex; flex-direction: column; align-items: center; width: 56px; border-radius: 28px; background: #2b2f37; overflow: hidden">
+<button type="button" aria-label="Nächster Sender" onClick="{{ rc.chUp }}" style="display: flex; align-items: center; justify-content: center; width: 56px; height: 52px; padding: 0; border: 0; background: transparent; color: #ffffff; cursor: pointer"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6v12"></path><path d="M6 12h12"></path></svg></button>
+<span aria-hidden="true" style="font-size: 14px; font-weight: 700; color: #aab5c1">CH</span>
+<button type="button" aria-label="Vorheriger Sender" onClick="{{ rc.chDown }}" style="display: flex; align-items: center; justify-content: center; width: 56px; height: 52px; padding: 0; border: 0; background: transparent; color: #ffffff; cursor: pointer"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 12h12"></path></svg></button>
+</div>
+</div>
+<p style="margin: 0; font-size: 15px; line-height: 1.5; color: #9aa3ad; text-align: center">Oder per Tastatur:<br>Pfeile · Enter · Backspace</p>
+</div>
+</div></template>
+
+<script>
+class DCLogic {
+  constructor(props) { this.props = props || {}; this.state = {}; }
+  setState(u) {
+    const patch = typeof u === 'function' ? u(this.state, this.props) : u;
+    this.state = Object.assign({}, this.state, patch || {});
+    if (this.__schedule) this.__schedule();
+  }
+  forceUpdate() { if (this.__schedule) this.__schedule(); }
+}
+
+const P1 = (function () {
+
+const RAW = 'Das Erste|h|deu qad qks qde|deu|f;ZDF|h|deu qad qks qde|deu|f;RTL|h|deu qde|deu|f;SAT.1|h|deu qde|deu|f;ProSieben|h|deu qde|deu|f;VOX|h|deu qde|deu|f;Kabel Eins|h|deu qde|deu|f;RTLZWEI|h|deu|deu|f;Super RTL|h|deu qde|deu|k;NITRO|h|deu qde|deu|f;sixx|h|deu qde|deu|f;ProSieben MAXX|h|deu qde|deu|f;TELE 5|h|deu||f;3sat|h|deu qad qks qde|deu|d;ARTE|h|deu fra qaa qad|deu fra|d;phoenix|h|deu qaa|deu|n;ZDFneo|h|deu qad qks qde|deu|f;ZDFinfo|h|deu qad qks qde|deu|d;ONE|h|deu qad qks qde|deu|f;tagesschau24|h|deu qad qks qde|deu|n;ARD alpha|h|deu qad qks qde|deu|d;KiKA|h|deu qad qks qde|deu|k;ntv|h|deu||n;WELT|h|deu||n;N24 Doku|h|deu||d;DMAX|h|deu||f;TLC|h|deu||f;SPORT1|h|deu||s;Eurosport 1|h|deu eng||s;WDR Köln|h|deu qad qks qde|deu|f;NDR Hamburg|h|deu qad qks|deu|f;BR Süd|h|deu qad qks qde|deu|f;SWR Baden-Württemberg|h|deu qad qks qde|deu|f;hr fernsehen|h|deu qad qks qde|deu|f;MDR Sachsen|h|deu qad qks qde|deu|f;rbb Berlin|h|deu qad qks qde|deu|f;SR Fernsehen|h|deu qad qks qde|deu|f;13th Street|h|deu eng qde||f;24 TV|h|tur||f;360 TuneBox|h|eng||m;360 TV|h|tur||f;A Haber|h|tur||n;A News|h|eng||n;A Spor|h|tur||s;A2 TV|h|tur||f;Al Jazeera English|h|eng||n;AMSC|h|deu||f;Animal Planet|h|deu eng||d;ATV Avrupa|h|tur||f;AXN Black|h|deu qaa qde||f;AXN White|h|deu qaa qde||f;BBC World News|h|eng||n;Beyaz TV|h|tur||f;Bibel TV|h|deu||f;BR Nord|h|deu qad qks qde|deu|f;CNBC Europe|h|eng||n;CNN International|h|eng||n;CNN Türk|h|tur||n;Comedy Central|h|deu||f;Crime + Action|h|deu||f;Crime + Investigation|h|deu eng qde||d;DAZN 1|h|deu||s;DAZN 2|h|deu||s;DAZN FAST|h|deu||s;DAZN Rise|h|deu||s;Deluxe Dance|h|deu||m;Deluxe Rap|h|deu||m;Deluxe TV|h|deu||m;Deutsches Musik Fernsehen|h|deu||m;DF1|h|deu||f;Discovery|h|deu eng||d;Disney Channel|h|deu qde||k;Diyanet TV|h|tur||f;DocuBox|h|eng||d;DokuSat|h|deu||d;Edge Sport|h|eng||s;eoTV|h|deu||f;eSports1|h|deu eng||s;Euro D|h|tur||f;Euro Star|h|tur||f;euronews|h|deu||n;Eurosport 2|h|deu eng||s;EWTN|h|deu||f;Fashion TV|h|eng||f;FashionBox|h|eng||f;Fast&FunBox|h|eng||f;Fight24|h|deu||s;FightBox|h|eng||s;FilmBox Arthouse|h|eng||f;Fix & Foxi|h|deu||k;Flash Haber|h|eng||n;France 24 English|h|eng|deu|n;Gametoon|h|eng||k;GEO Television|h|deu qaa qde||d;Gute Laune TV|h|eng||m;Habertürk|h|tur||n;HandyStar|h|deu||e;Heimatkanal|h|deu||f;HGTV|h|deu||f;Hope TV|h|deu||f;HSE|h|deu||e;Jukebox|h|deu||m;K-TV|h|deu||f;Kabel Eins Classics|h|deu||f;Kabel Eins Doku|h|deu qde|deu|d;Kanal 7 Avrupa|h|tur||f;Kinowelt|h|deu qaa||f;Landlust|h|deu||d;MDR Sachsen-Anhalt|h|deu qad qks qde|deu|f;MDR Thüringen|h|deu qad qks qde|deu|f;Metal Rocks|h|deu||m;Motorvision|h|deu||s;Movie Music|h|eng||m;MTV|h|deu||m;Music Box 00s|h|zxx||m;Music Box 80s|h|zxx||m;Music Box 90s|h|zxx||m;Music Box Classic|h|zxx||m;Music Box Dance|h|zxx||m;Music Box Hits|h|zxx||m;Naruto|h|deu||k;Nat Geo Wild|h|deu eng qde qen||d;National Geographic|h|deu eng qde qen||d;NDR Bremen|h|deu qad qks|deu|f;NDR Mecklenburg-Vorpommern|h|deu qad qks|deu|f;NDR Niedersachsen|h|deu qad qks qde|deu|f;NDR Schleswig-Holstein|h|deu qad qks|deu|f;NHK World|h|eng||n;Nick Jr.|h|deu eng||k;Nickelodeon|h|deu||k;Planet|h|deu||d;ProSieben FUN|h|deu qaa||f;Quello|h|eng||f;QVC|h|deu||e;rbb Brandenburg|h|deu qad qks qde|deu|f;Red Bull TV|h|deu||s;RiC|h|deu||k;Romance TV|h|deu||f;Rot|h|deu||f;RTL Crime|h|deu qaa qde||f;RTL Living|h|deu qaa qde||f;RTL Passion|h|deu qaa qde||f;RTLup|h|deu qde||f;SAT.1 emotions|h|deu||f;SAT.1 GOLD|h|deu qde|deu|f;Sbl0|h|deu qde||s;Sbl1|h|deu qaa qde||s;Sbl10|h|deu qaa qde||s;Sbl2|h|deu qaa qde||s;Sbl3|h|deu qaa qde||s;Sbl4|h|deu qaa qde||s;Sbl5|h|deu qaa qde||s;Sbl6|h|deu qaa qde||s;Sbl7|h|deu qaa qde||s;Sbl8|h|deu qaa qde||s;Sbl9|h|deu qaa qde||s;Show Türk|h|tur||f;Silverline|h|deu||f;sonnenklar.TV|h|deu||e;SPIEGEL Geschichte|h|deu qde||d;SPIEGEL Wissen|h|deu||d;SPORT1+|h|deu qaa||s;sportdigital|h|deu eng||s;SRF 1|h|deu eng|deu|f;SRF info|h|deu eng qad|deu|n;SRF zwei|h|deu eng|deu|f;Stingray Classica|h|eng||m;SWR Rheinland-Pfalz|h|deu qad qks qde|deu|f;SYFY|h|deu eng qde||f;Tennis Channel|h|eng||s;teve2|h|tur||f;TGRT Belgesel|h|tur||d;TGRT EU|h|tur||f;TGRT Haber|h|tur||n;The HISTORY Channel|h|deu eng qde||d;TNT Comedy|h|deu eng||f;TNT Film|h|deu eng||f;TNT Serie|h|deu eng||f;Toggo plus|h|deu||k;Top Filme|h|deu||f;Top Sci-Fi|h|deu||f;Top True Crime|h|deu||f;TR Fox|h|tur||f;Travelxp|h|deu||f;TRT 1|h|tur||f;TRT Arabi|h|ara||f;TRT Avaz|h|tur||f;TRT Belgesel|h|tur||d;TRT Haber|h|tur||n;TRT Kurdî|h|kur||f;TRT Müzik|h|tur||m;TRT Spor|h|tur||s;TRT Türk|h|tur||f;TRT World|h|eng||n;TRT Çocuk|h|tur||k;TV 4|h|eng||f;tv100|h|tur||n;TV8 International|h|tur||f;Universal TV|h|deu eng qde||f;VOXup|h|deu qde||f;watch4crime|h|deu||f;WDR Aachen|h|deu qad qks|deu|f;WDR Bielefeld|h|deu qad qks|deu|f;WDR Bonn|h|deu qad qks|deu|f;WDR Dortmund|h|deu qad qks|deu|f;WDR Duisburg|h|deu qad qks|deu|f;WDR Düsseldorf|h|deu qad qks|deu|f;WDR Essen|h|deu qad qks|deu|f;WDR Münster|h|deu qad qks|deu|f;WDR Siegen|h|deu qad qks|deu|f;WDR Wuppertal|h|deu qad qks|deu|f;wedo sports|h|deu||s;Welt der Wunder|h|deu||d;wir24|h|deu||f;Xite Hits|h|eng||m;Xite R&B|h|eng||m;Alles was zählt|s|deu||f;Bauer sucht Frau|s|deu||f;Comedy Central|s|deu||f;Deluxe TV|s|deu||m;Disney Channel|s|deu||k;DMAX|s|deu||f;Ekin Türk|s|tur||f;Eurosport 1|s|deu eng||s;GEO Television|s|deu qaa||d;Goldstar TV|s|deu||m;Hund Katze Maus|s|deu||f;Kabel Eins|s|deu||f;Kabel Eins Doku|s|deu|deu|d;Melodie TV|s|deu||m;MTV|s|deu||m;N24 Doku|s|deu||d;Nickelodeon|s|deu||k;Nicktoons|s|deu eng||k;NITRO|s|deu|deu|f;ntv|s|deu||n;ProSieben|s|deu qde|deu|f;ProSieben MAXX|s|deu||f;RTL|s|deu qde|deu|f;RTL Comedy|s|deu||f;RTL Crime|s|deu qaa||f;RTL Haus & Garten|s|deu||d;RTL Living|s|deu qaa||f;RTL Passion|s|deu qaa||f;RTL Shine|s|deu||f;RTLup|s|deu||f;RTLZWEI|s|deu||f;SAT.1|s|deu qde|deu|f;SAT.1 GOLD|s|deu|deu|f;Schlager Deluxe|s|deu||m;Shopping Queen|s|deu||e;Showmax|s|tur||f;sixx|s|deu|deu|f;SPORT1|s|deu||s;Super RTL|s|deu|deu|k;TELE 5|s|deu||f;TLC|s|deu||f;Toggo plus|s|deu||k;TV5|s|tur||f;VOX|s|deu|deu|f;VOXup|s|deu||f;WELT|s|deu||n;wetter.com TV|s|deu||f;EXA Test 10|h|deu||f;EXA Test 11|h|deu||f;EXA Test 12|h|deu qde||f;EXA Test 13|h|deu||f;EXA Test 14|h|deu||f;EXA Test 15|h|deu||f;EXA Test 1|s|deu||f;EXA Test 2|h|deu||f;EXA Test 4|h|deu qde||f;EXA Test 5|h|deu||f;EXA Test 6|h|deu||f;EXA Test 8|h|deu qad qks qde||f;EXA Test 9|h|deu qde||f';
+
+const LABEL = { deu: 'Deutsch', qks: 'Deutsch (Klare Sprache)', qad: 'Deutsch (Audiodeskription)', qaa: 'Originalton', eng: 'Englisch', fra: 'Französisch', tur: 'Türkisch', kur: 'Kurdisch', ara: 'Arabisch', zxx: 'Kein sprachlicher Inhalt' };
+const SUBLABEL = { deu: 'Deutsch', fra: 'Französisch' };
+const ORDER = ['deu', 'qks', 'qad', 'qaa', 'eng', 'fra', 'tur', 'kur', 'ara', 'zxx'];
+const LANGS = ['deu', 'eng', 'fra', 'qaa', 'tur', 'ara', 'kur'];
+const PREF_KEY = 'waipu-liveplayer-prototyp-c-prefs';
+
+const POOLS = {
+  f: [['Die Küstenwache von Hallig Nord', 'S2 F7 · Sturmwarnung', 'Serie · Krimi · D 2024 · ab 12'], ['Zwischen den Gleisen', 'Spielfilm', 'Spielfilm · Drama · D 2021 · ab 12'], ['Das Haus am Weinberg', 'S1 F3 · Neue Nachbarn', 'Serie · Familie · D 2023 · ab 6'], ['Nachtschicht im Revier 9', 'S4 F11 · Falsche Fährte', 'Serie · Krimi · D 2022 · ab 16'], ['Die große Backstube', 'Folge 5 · Das Finale', 'Show · Kochen · D 2025 · ab 0'], ['Fremde Spuren', 'Spielfilm', 'Spielfilm · Thriller · USA 2019 · ab 16'], ['Kanzlei Brandt', 'S3 F2 · Erbstreit', 'Serie · Drama · D 2023 · ab 12']],
+  d: [['Wilde Wasser des Nordens', 'F2 · Die Fjorde', 'Doku · Natur · D 2024 · ab 0'], ['Maschinen der Antike', 'F4 · Die Mühlen Roms', 'Doku · Geschichte · GB 2022 · ab 6'], ['Leben im Hochmoor', 'Dokumentation', 'Doku · Natur · D 2023 · ab 0'], ['Städte unter Druck', 'F1 · Hitze', 'Reportage · Gesellschaft · D 2025 · ab 6']],
+  n: [['Nachrichten am Nachmittag', 'Aktuelles aus aller Welt', 'Nachrichten · 2026 · ab 0'], ['Das Wirtschaftsmagazin', 'Märkte im Überblick', 'Magazin · Wirtschaft · 2026 · ab 0'], ['Im Gespräch', 'Interview', 'Talk · Politik · 2026 · ab 0']],
+  s: [['Live: Hallenfußball-Cup', 'Halbfinale', 'Sport · Fußball · Live · ab 0'], ['Motorsport kompakt', 'Die Highlights', 'Sport · Motorsport · ab 0'], ['Tennis: Herbst-Open', 'Viertelfinale', 'Sport · Tennis · Live · ab 0']],
+  m: [['Hits nonstop', 'Musikvideos', 'Musik · ab 0'], ['Die Charts der Woche', 'Countdown', 'Musik · Show · ab 0']],
+  k: [['Pip und die Wolkenbande', 'F12 · Der Regenbogenschlüssel', 'Kinder · Animation · ab 0'], ['Forscherkiste', 'F8 · Warum ist der Himmel blau?', 'Kinder · Wissen · ab 0']],
+  e: [['Shopping am Nachmittag', 'Haushalt & Küche', 'Shopping · ab 0'], ['Reisezeit', 'Angebote der Woche', 'Shopping · Reise · ab 0']]
+};
+
+function hashStr(s) { let x = 7; for (let i = 0; i < s.length; i++) { x = (x * 31 + s.charCodeAt(i)) >>> 0; } return x; }
+
+const CH = RAW.split(';').map((s, i) => {
+  const p = s.split('|');
+  const codes = p[2] ? p[2].split(' ') : [];
+  const subs = p[3] ? p[3].split(' ') : [];
+  const has = (c) => codes.indexOf(c) >= 0;
+  const tracks = ORDER.filter((c) => has(c) || (c === 'deu' && has('qde')) || (c === 'eng' && has('qen')))
+    .map((c) => ({ code: c, label: LABEL[c], dolby: (c === 'deu' && has('qde')) || (c === 'eng' && has('qen')) }));
+  return { i, num: String(i + 1).padStart(3, '0'), name: p[0], hd: p[1] === 'h', codes, subs, tracks, cat: p[4] || 'f', seed: hashStr(p[0] + '#' + i) };
+});
+
+const FILTERS = [
+  ['Alle', () => true],
+  ['HD', (c) => c.hd],
+  ['Mit Untertiteln', (c) => c.subs.length > 0],
+  ['Audiodeskription', (c) => c.codes.indexOf('qad') >= 0],
+  ['Mehrsprachig', (c) => c.tracks.filter((t) => LANGS.indexOf(t.code) >= 0).length >= 2],
+  ['Dolby Audio', (c) => c.tracks.some((t) => t.dolby)],
+  ['Klare Sprache', (c) => c.codes.indexOf('qks') >= 0]
+];
+const FLISTS = FILTERS.map((f) => CH.filter(f[1]).map((c) => c.i));
+
+function pad2(n) { return String(n).padStart(2, '0'); }
+function hm(min) { const m = ((Math.floor(min) % 1440) + 1440) % 1440; return pad2(Math.floor(m / 60)) + ':' + pad2(m % 60); }
+
+function prog(c) {
+  const now = new Date();
+  const nm = now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60;
+  const off = (c.seed % 4) * 15;
+  const k = Math.floor((nm - off) / 60);
+  const start = k * 60 + off;
+  const pool = POOLS[c.cat] || POOLS.f;
+  const a = pool[(c.seed + k + 400) % pool.length];
+  const b = pool[(c.seed + k + 401) % pool.length];
+  return { title: a[0], sub: a[1], genre: a[2], next: b[0], start, end: start + 60, elapsed: nm - start };
+}
+
+function resolve(c, p) {
+  const a = c.tracks.find((t) => t.code === p.audio) || c.tracks.find((t) => t.code === 'deu') || c.tracks[0] || { code: 'deu', label: 'Deutsch', dolby: false };
+  return { audio: a, applied: a.code === p.audio, sub: c.subs.indexOf(p.sub) >= 0 ? p.sub : 'off', dolbyOn: !!(p.dolby && a.dolby) };
+}
+
+const BSTYLE = {
+  plain: 'border: 2px solid rgba(255,255,255,0.8); background: transparent; color: #ffffff',
+  avail: 'border: 2px solid rgba(255,255,255,0.8); background: transparent; color: #ffffff',
+  active: 'border: 2px solid #ffffff; background: #ffffff; color: #0b1118'
+};
+const BWORD = { plain: '', avail: ' verfügbar', active: ' aktiv, Ihre Einstellung' };
+
+function badgesFor(c, p, r) {
+  const out = [];
+  const add = (label, st, full) => out.push({ label, css: BSTYLE[st], active: st === 'active', aria: (full || label) + BWORD[st] });
+  if (c.hd) add('HD', 'plain');
+  if (c.tracks.some((t) => t.dolby)) add('DD', r.dolbyOn ? 'active' : 'avail', 'Dolby Audio');
+  if (c.subs.length) add('UT', r.sub !== 'off' ? 'active' : 'avail', 'Untertitel');
+  if (c.codes.indexOf('qad') >= 0) add('AD', r.audio.code === 'qad' ? 'active' : 'avail', 'Audiodeskription');
+  const langs = c.tracks.filter((t) => LANGS.indexOf(t.code) >= 0).length;
+  const foreign = LANGS.indexOf(p.audio) >= 0 && p.audio !== 'deu';
+  if (langs >= 2) add('Mehrsprachig', foreign && r.applied ? 'active' : 'avail');
+  return out;
+}
+
+
+function thumbCss(seed, shift) { return 'background: hsl(' + ((seed + shift) % 360) + ', 28%, 30%)'; }
+
+const KEYS = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', ' ', 'Escape', 'Backspace', 'PageUp', 'PageDown'];
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const prefs = { audio: 'deu', sub: 'off', dolby: false };
+    this.state = { ch: 0, stack: ['stream'], focus: 2, paused: false, pausePos: 0, shift: 0, rec: {}, info: false, fIdx: 0, lIdx: 0, col: 'list', aIdx: 0, prefs, toast: '' };
+  }
+
+  componentDidMount() { this.timer = setInterval(() => this.forceUpdate(), 20000); this.focusTimer = setTimeout(() => this.refocus(), 50); }
+  componentWillUnmount() { clearInterval(this.timer); clearTimeout(this.toastTimer); clearTimeout(this.zapTimer); clearTimeout(this.focusTimer); }
+
+  savePrefs(prefs) {
+    this.setState({ prefs });
+  }
+  say(text, sub, ms) {
+    clearTimeout(this.toastTimer);
+    this.setState({ toast: text, toastSub: sub || '' });
+    this.toastTimer = setTimeout(() => this.setState({ toast: '', toastSub: '' }), ms || 2600);
+  }
+  refocus() { if (this.root) { try { this.root.focus({ preventScroll: true }); } catch (e) {} } }
+  zap(d) {
+    const n = CH.length;
+    const ni = (this.state.ch + d + n) % n;
+    this.setState({ ch: ni, paused: false, shift: 0, info: false });
+    this.showZap();
+  }
+  tune(i) {
+    this.setState({ ch: i, paused: false, shift: 0, info: false, focus: 2 });
+    this.showZap();
+  }
+  topOf(s) { return s.stack[s.stack.length - 1]; }
+  armZap() {
+    clearTimeout(this.zapTimer);
+    this.zapTimer = setTimeout(() => { if (this.topOf(this.state) === 'zap') this.setState({ stack: ['stream'] }); }, 5000);
+  }
+  showZap() { this.setState({ stack: ['stream', 'zap'] }); this.armZap(); }
+  openControls() {
+    clearTimeout(this.zapTimer);
+    this.setState({ stack: this.state.stack.concat('controls'), focus: 2 });
+  }
+  back() {
+    clearTimeout(this.zapTimer);
+    const s = this.state;
+    if (s.stack.length <= 1) return;
+    const leaving = this.topOf(s);
+    const st = s.stack.slice(0, -1);
+    this.setState({ stack: st, info: leaving === 'controls' ? false : s.info });
+    if (st[st.length - 1] === 'zap') this.armZap();
+  }
+  playhead(s, pr) { return s.paused ? s.pausePos : Math.max(0, pr.elapsed - s.shift); }
+  press(k) { this.key({ key: k, preventDefault() {}, stopPropagation() {} }); this.refocus(); }
+  remoteHome() { clearTimeout(this.zapTimer); this.setState({ stack: ['stream'], info: false }); this.refocus(); }
+  remoteMenu() { if (this.topOf(this.state) !== 'controls') this.openControls(); this.refocus(); }
+  remotePlay() { const was = this.state.paused; this.act(2); this.say(was ? 'Wiedergabe' : 'Pausiert'); this.refocus(); }
+  seek(min) {
+    const s = this.state;
+    const pr = prog(CH[s.ch]);
+    const target = Math.max(0, Math.min(pr.elapsed, this.playhead(s, pr) - min));
+    if (s.paused) this.setState({ pausePos: target });
+    else this.setState({ shift: pr.elapsed - target });
+    this.say(min > 0 ? '− 5 Min.' : (target >= pr.elapsed ? 'Live' : '+ 5 Min.'));
+    this.refocus();
+  }
+
+  act(i) {
+    const s = this.state;
+    const c = CH[s.ch];
+    const pr = prog(c);
+    if (i === 0) {
+      const li = FLISTS[s.fIdx].indexOf(s.ch);
+      if (li < 0) this.setState({ fIdx: 0, lIdx: s.ch, col: 'list', stack: s.stack.concat('list') });
+      else this.setState({ lIdx: li, col: 'list', stack: s.stack.concat('list') });
+    } else if (i === 1) {
+      this.setState({ shift: pr.elapsed, paused: false });
+      this.say('Sendung läuft von Beginn');
+    } else if (i === 2) {
+      if (s.paused) this.setState({ paused: false, shift: Math.max(0, pr.elapsed - s.pausePos) });
+      else this.setState({ paused: true, pausePos: this.playhead(s, pr) });
+    } else if (i === 3) {
+      if (!s.paused && s.shift === 0) this.say('Läuft bereits live');
+      else { this.setState({ paused: false, shift: 0 }); this.say('Zurück zu Live'); }
+    } else if (i === 4) {
+      const rec = Object.assign({}, s.rec);
+      rec[s.ch] = !rec[s.ch];
+      this.setState({ rec });
+      this.say(rec[s.ch] ? 'Aufnahme gestartet' : 'Aufnahme gestoppt');
+    } else if (i === 5) {
+      const r = resolve(c, s.prefs);
+      this.setState({ stack: s.stack.concat('audio'), aIdx: c.tracks.findIndex((t) => t.code === r.audio.code) + 1 });
+    } else if (i === 6) {
+      this.setState({ stack: s.stack.concat('info') });
+    }
+  }
+
+  layerCount(c) { return 1 + c.tracks.length + 1 + c.subs.length; }
+
+  pick(idx) {
+    const s = this.state;
+    const c = CH[s.ch];
+    const p = Object.assign({}, s.prefs);
+    const nt = c.tracks.length;
+    if (idx === 0) p.dolby = !p.dolby;
+    else if (idx <= nt) p.audio = c.tracks[idx - 1].code;
+    else { const j = idx - nt - 1; p.sub = j === 0 ? 'off' : c.subs[j - 1]; }
+    this.savePrefs(p);
+    this.setState({ aIdx: idx });
+  }
+
+  key(e) {
+    const k = e.key;
+    if (KEYS.indexOf(k) < 0) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const s = this.state;
+    const ok = k === 'Enter' || k === ' ';
+    const back = k === 'Escape' || k === 'Backspace';
+    const top = this.topOf(s);
+    if (top === 'info') { if (back || ok) this.back(); return; }
+    if (top === 'list') {
+      const fl = FLISTS[s.fIdx];
+      if (back) { this.back(); return; }
+      if (s.col === 'filter') {
+        if (k === 'ArrowUp') this.setState({ fIdx: Math.max(0, s.fIdx - 1), lIdx: 0 });
+        else if (k === 'ArrowDown') this.setState({ fIdx: Math.min(FILTERS.length - 1, s.fIdx + 1), lIdx: 0 });
+        else if (k === 'ArrowRight' || ok) this.setState({ col: 'list' });
+        return;
+      }
+      if (k === 'ArrowUp' || k === 'PageUp') this.setState({ lIdx: Math.max(0, s.lIdx - (k === 'PageUp' ? 5 : 1)) });
+      else if (k === 'ArrowDown' || k === 'PageDown') this.setState({ lIdx: Math.min(fl.length - 1, s.lIdx + (k === 'PageDown' ? 5 : 1)) });
+      else if (k === 'ArrowLeft') this.setState({ col: 'filter' });
+      else if (ok) this.tune(fl[s.lIdx]);
+      return;
+    }
+    if (top === 'audio') {
+      const n = this.layerCount(CH[s.ch]);
+      if (back || k === 'ArrowLeft') { this.back(); return; }
+      if (k === 'ArrowUp') this.setState({ aIdx: Math.max(0, s.aIdx - 1) });
+      else if (k === 'ArrowDown') this.setState({ aIdx: Math.min(n - 1, s.aIdx + 1) });
+      else if (ok) this.pick(s.aIdx);
+      return;
+    }
+    if (k === 'ArrowUp' || k === 'PageUp') { this.zap(-1); return; }
+    if (k === 'ArrowDown' || k === 'PageDown') { this.zap(1); return; }
+    if (back) { this.back(); return; }
+    if (top !== 'controls') { if (ok) this.openControls(); return; }
+    if (k === 'ArrowLeft') this.setState({ focus: Math.max(0, s.focus - 1) });
+    else if (k === 'ArrowRight') this.setState({ focus: Math.min(6, s.focus + 1) });
+    else if (ok) this.act(s.focus);
+  }
+
+  renderVals() {
+    const accent = this.props.accent ?? '#4da3ff';
+    const s = this.state;
+    const c = CH[s.ch];
+    const p = s.prefs;
+    const r = resolve(c, p);
+    const pr = prog(c);
+    const ph = this.playhead(s, pr);
+    const pct = Math.max(0, Math.min(100, (ph / 60) * 100));
+    const live = !s.paused && s.shift === 0;
+    const top = this.topOf(s);
+    const inPlayer = top === 'controls';
+    const ctl = (i, label) => {
+      const f = inPlayer && s.focus === i;
+      return { bg: f ? '#ffffff' : 'transparent', fg: f ? '#0b1118' : '#ffffff', focused: f, label, click: () => { this.setState({ focus: i }); this.act(i); this.refocus(); } };
+    };
+    const recOn = !!s.rec[s.ch];
+
+    const fl = FLISTS[s.fIdx];
+    const start = Math.max(0, Math.min(s.lIdx - 1, fl.length - 5));
+    const rows = fl.slice(start, start + 5).map((ci, k) => {
+      const cc = CH[ci];
+      const pp = prog(cc);
+      const f = start + k === s.lIdx;
+      return {
+        num: cc.num, name: cc.name + (cc.hd ? '' : ' SD'), title: pp.title, sub: pp.sub, genre: pp.genre,
+        time: 'Seit ' + hm(pp.start) + ' Uhr · 60 Min.', next: pp.next, focused: f, plain: !f,
+        ring: f && s.col === 'list' ? '#ffffff' : 'rgba(255,255,255,0.3)',
+        thumb: thumbCss(cc.seed, 0), nextThumb: thumbCss(cc.seed, 140),
+        pct: Math.round(Math.max(0, Math.min(100, (pp.elapsed / 60) * 100))) + '%',
+        badges: badgesFor(cc, p, resolve(cc, p)),
+        aria: cc.num + ' ' + cc.name + ', jetzt: ' + pp.title,
+        pick: () => { this.tune(ci); this.refocus(); }
+      };
+    });
+    const filters = FILTERS.map((f, i) => ({
+      label: f[0], count: String(FLISTS[i].length),
+      bg: i === s.fIdx ? 'rgba(255,255,255,0.14)' : 'transparent',
+      ring: i === s.fIdx && s.col === 'filter' ? '#ffffff' : 'transparent',
+      weight: i === s.fIdx ? '700' : '400',
+      pick: () => { this.setState({ fIdx: i, lIdx: 0, col: 'list' }); this.refocus(); }
+    }));
+
+    const nt = c.tracks.length;
+    const ring = (i) => (s.aIdx === i ? '#ffffff' : 'transparent');
+    const weight = (i) => (s.aIdx === i ? '700' : '600');
+    const audioItems = c.tracks.map((t, j) => ({
+      label: t.label, ring: ring(j + 1), weight: weight(j + 1), active: t.code === r.audio.code, saved: t.code === p.audio,
+      show51: !!(t.dolby && p.dolby), click: () => { this.pick(j + 1); this.refocus(); }
+    }));
+    const subList = [{ code: 'off', label: 'Aus' }].concat(c.subs.map((x) => ({ code: x, label: SUBLABEL[x] || x })));
+    const subItems = subList.map((t, j) => ({
+      label: t.label, ring: ring(nt + 1 + j), weight: weight(nt + 1 + j), active: t.code === r.sub, saved: t.code === p.sub,
+      click: () => { this.pick(nt + 1 + j); this.refocus(); }
+    }));
+
+    return {
+      accent,
+      rootRef: (el) => { this.root = el; },
+      onKey: (e) => this.key(e),
+      onEnter: () => this.refocus(),
+      rc: {
+        up: () => this.press('ArrowUp'), down: () => this.press('ArrowDown'),
+        left: () => this.press('ArrowLeft'), right: () => this.press('ArrowRight'),
+        ok: () => this.press('Enter'), back: () => this.press('Backspace'),
+        home: () => this.remoteHome(), menu: () => this.remoteMenu(), play: () => this.remotePlay(),
+        rew: () => this.seek(5), ff: () => this.seek(-5),
+        chUp: () => { this.zap(1); this.refocus(); }, chDown: () => { this.zap(-1); this.refocus(); }
+      },
+      videoBg: 'hsl(' + (c.seed % 360) + ', 22%, 17%)',
+      chNum: c.num, chName: c.name,
+      showOverlay: inPlayer, showZap: top === 'zap', showStream: top === 'stream' || top === 'zap', showList: top === 'list', showAudio: top === 'audio',
+      hideOverlay: () => { this.back(); this.refocus(); },
+      closeLayer: () => { this.back(); this.refocus(); },
+      openControlsClick: () => { this.openControls(); this.refocus(); },
+      hdrBadges: badgesFor(c, p, r),
+      title: pr.title, subtitle: pr.sub, genre: pr.genre,
+      timeLine: 'Seit ' + hm(pr.start) + ' Uhr · 60 Min. · Im Anschluss: ' + pr.next,
+      showInfo: s.info,
+      startTime: hm(pr.start), endTime: hm(pr.end), pct: pct.toFixed(1) + '%',
+      isPaused: s.paused, isPlaying: !s.paused,
+      c0: ctl(0, 'Senderliste'), c1: ctl(1, 'Von Beginn'), c2: ctl(2, s.paused ? 'Abspielen' : 'Pause'),
+      c3: ctl(3, live ? 'Live' : 'Zu Live'), c4: ctl(4, recOn ? 'Aufnahme stoppen' : 'Aufnehmen'),
+      c5: ctl(5, 'Audio & Untertitel'), c6: ctl(6, s.info ? 'Info ausblenden' : 'Info'),
+      liveFg: inPlayer && s.focus === 3 ? '#0b1118' : (live ? '#ffffff' : accent),
+      recR: recOn ? 7 : 4.5,
+      filters, rows,
+      dolby: {
+        checked: p.dolby ? 'true' : 'false', ring: ring(0), weight: weight(0),
+        knobAlign: p.dolby ? 'flex-end' : 'flex-start', trackBg: p.dolby ? accent : 'rgba(255,255,255,0.28)', knobBg: p.dolby ? '#0b1118' : '#ffffff',
+        missing: !c.tracks.some((t) => t.dolby), click: () => { this.pick(0); this.refocus(); }
+      },
+      audioItems, subItems,
+      audioUnav: { show: !c.tracks.some((t) => t.code === p.audio), label: LABEL[p.audio] || p.audio },
+      subUnav: { show: p.sub !== 'off' && c.subs.indexOf(p.sub) < 0, label: SUBLABEL[p.sub] || p.sub },
+      noSubs: c.subs.length === 0,
+      hasToast: !!s.toast, toast: s.toast, hasToastSub: !!s.toastSub, toastSub: s.toastSub || ''
+    };
+  }
+}
+
+return Component;
+})();
+
+const P2 = (function () {
+
+const RAW = 'Das Erste|h|deu qad qks qde|deu|f;ZDF|h|deu qad qks qde|deu|f;RTL|h|deu qde|deu|f;SAT.1|h|deu qde|deu|f;ProSieben|h|deu qde|deu|f;VOX|h|deu qde|deu|f;Kabel Eins|h|deu qde|deu|f;RTLZWEI|h|deu|deu|f;Super RTL|h|deu qde|deu|k;NITRO|h|deu qde|deu|f;sixx|h|deu qde|deu|f;ProSieben MAXX|h|deu qde|deu|f;TELE 5|h|deu||f;3sat|h|deu qad qks qde|deu|d;ARTE|h|deu fra qaa qad|deu fra|d;phoenix|h|deu qaa|deu|n;ZDFneo|h|deu qad qks qde|deu|f;ZDFinfo|h|deu qad qks qde|deu|d;ONE|h|deu qad qks qde|deu|f;tagesschau24|h|deu qad qks qde|deu|n;ARD alpha|h|deu qad qks qde|deu|d;KiKA|h|deu qad qks qde|deu|k;ntv|h|deu||n;WELT|h|deu||n;N24 Doku|h|deu||d;DMAX|h|deu||f;TLC|h|deu||f;SPORT1|h|deu||s;Eurosport 1|h|deu eng||s;WDR Köln|h|deu qad qks qde|deu|f;NDR Hamburg|h|deu qad qks|deu|f;BR Süd|h|deu qad qks qde|deu|f;SWR Baden-Württemberg|h|deu qad qks qde|deu|f;hr fernsehen|h|deu qad qks qde|deu|f;MDR Sachsen|h|deu qad qks qde|deu|f;rbb Berlin|h|deu qad qks qde|deu|f;SR Fernsehen|h|deu qad qks qde|deu|f;13th Street|h|deu eng qde||f;24 TV|h|tur||f;360 TuneBox|h|eng||m;360 TV|h|tur||f;A Haber|h|tur||n;A News|h|eng||n;A Spor|h|tur||s;A2 TV|h|tur||f;Al Jazeera English|h|eng||n;AMSC|h|deu||f;Animal Planet|h|deu eng||d;ATV Avrupa|h|tur||f;AXN Black|h|deu qaa qde||f;AXN White|h|deu qaa qde||f;BBC World News|h|eng||n;Beyaz TV|h|tur||f;Bibel TV|h|deu||f;BR Nord|h|deu qad qks qde|deu|f;CNBC Europe|h|eng||n;CNN International|h|eng||n;CNN Türk|h|tur||n;Comedy Central|h|deu||f;Crime + Action|h|deu||f;Crime + Investigation|h|deu eng qde||d;DAZN 1|h|deu||s;DAZN 2|h|deu||s;DAZN FAST|h|deu||s;DAZN Rise|h|deu||s;Deluxe Dance|h|deu||m;Deluxe Rap|h|deu||m;Deluxe TV|h|deu||m;Deutsches Musik Fernsehen|h|deu||m;DF1|h|deu||f;Discovery|h|deu eng||d;Disney Channel|h|deu qde||k;Diyanet TV|h|tur||f;DocuBox|h|eng||d;DokuSat|h|deu||d;Edge Sport|h|eng||s;eoTV|h|deu||f;eSports1|h|deu eng||s;Euro D|h|tur||f;Euro Star|h|tur||f;euronews|h|deu||n;Eurosport 2|h|deu eng||s;EWTN|h|deu||f;Fashion TV|h|eng||f;FashionBox|h|eng||f;Fast&FunBox|h|eng||f;Fight24|h|deu||s;FightBox|h|eng||s;FilmBox Arthouse|h|eng||f;Fix & Foxi|h|deu||k;Flash Haber|h|eng||n;France 24 English|h|eng|deu|n;Gametoon|h|eng||k;GEO Television|h|deu qaa qde||d;Gute Laune TV|h|eng||m;Habertürk|h|tur||n;HandyStar|h|deu||e;Heimatkanal|h|deu||f;HGTV|h|deu||f;Hope TV|h|deu||f;HSE|h|deu||e;Jukebox|h|deu||m;K-TV|h|deu||f;Kabel Eins Classics|h|deu||f;Kabel Eins Doku|h|deu qde|deu|d;Kanal 7 Avrupa|h|tur||f;Kinowelt|h|deu qaa||f;Landlust|h|deu||d;MDR Sachsen-Anhalt|h|deu qad qks qde|deu|f;MDR Thüringen|h|deu qad qks qde|deu|f;Metal Rocks|h|deu||m;Motorvision|h|deu||s;Movie Music|h|eng||m;MTV|h|deu||m;Music Box 00s|h|zxx||m;Music Box 80s|h|zxx||m;Music Box 90s|h|zxx||m;Music Box Classic|h|zxx||m;Music Box Dance|h|zxx||m;Music Box Hits|h|zxx||m;Naruto|h|deu||k;Nat Geo Wild|h|deu eng qde qen||d;National Geographic|h|deu eng qde qen||d;NDR Bremen|h|deu qad qks|deu|f;NDR Mecklenburg-Vorpommern|h|deu qad qks|deu|f;NDR Niedersachsen|h|deu qad qks qde|deu|f;NDR Schleswig-Holstein|h|deu qad qks|deu|f;NHK World|h|eng||n;Nick Jr.|h|deu eng||k;Nickelodeon|h|deu||k;Planet|h|deu||d;ProSieben FUN|h|deu qaa||f;Quello|h|eng||f;QVC|h|deu||e;rbb Brandenburg|h|deu qad qks qde|deu|f;Red Bull TV|h|deu||s;RiC|h|deu||k;Romance TV|h|deu||f;Rot|h|deu||f;RTL Crime|h|deu qaa qde||f;RTL Living|h|deu qaa qde||f;RTL Passion|h|deu qaa qde||f;RTLup|h|deu qde||f;SAT.1 emotions|h|deu||f;SAT.1 GOLD|h|deu qde|deu|f;Sbl0|h|deu qde||s;Sbl1|h|deu qaa qde||s;Sbl10|h|deu qaa qde||s;Sbl2|h|deu qaa qde||s;Sbl3|h|deu qaa qde||s;Sbl4|h|deu qaa qde||s;Sbl5|h|deu qaa qde||s;Sbl6|h|deu qaa qde||s;Sbl7|h|deu qaa qde||s;Sbl8|h|deu qaa qde||s;Sbl9|h|deu qaa qde||s;Show Türk|h|tur||f;Silverline|h|deu||f;sonnenklar.TV|h|deu||e;SPIEGEL Geschichte|h|deu qde||d;SPIEGEL Wissen|h|deu||d;SPORT1+|h|deu qaa||s;sportdigital|h|deu eng||s;SRF 1|h|deu eng|deu|f;SRF info|h|deu eng qad|deu|n;SRF zwei|h|deu eng|deu|f;Stingray Classica|h|eng||m;SWR Rheinland-Pfalz|h|deu qad qks qde|deu|f;SYFY|h|deu eng qde||f;Tennis Channel|h|eng||s;teve2|h|tur||f;TGRT Belgesel|h|tur||d;TGRT EU|h|tur||f;TGRT Haber|h|tur||n;The HISTORY Channel|h|deu eng qde||d;TNT Comedy|h|deu eng||f;TNT Film|h|deu eng||f;TNT Serie|h|deu eng||f;Toggo plus|h|deu||k;Top Filme|h|deu||f;Top Sci-Fi|h|deu||f;Top True Crime|h|deu||f;TR Fox|h|tur||f;Travelxp|h|deu||f;TRT 1|h|tur||f;TRT Arabi|h|ara||f;TRT Avaz|h|tur||f;TRT Belgesel|h|tur||d;TRT Haber|h|tur||n;TRT Kurdî|h|kur||f;TRT Müzik|h|tur||m;TRT Spor|h|tur||s;TRT Türk|h|tur||f;TRT World|h|eng||n;TRT Çocuk|h|tur||k;TV 4|h|eng||f;tv100|h|tur||n;TV8 International|h|tur||f;Universal TV|h|deu eng qde||f;VOXup|h|deu qde||f;watch4crime|h|deu||f;WDR Aachen|h|deu qad qks|deu|f;WDR Bielefeld|h|deu qad qks|deu|f;WDR Bonn|h|deu qad qks|deu|f;WDR Dortmund|h|deu qad qks|deu|f;WDR Duisburg|h|deu qad qks|deu|f;WDR Düsseldorf|h|deu qad qks|deu|f;WDR Essen|h|deu qad qks|deu|f;WDR Münster|h|deu qad qks|deu|f;WDR Siegen|h|deu qad qks|deu|f;WDR Wuppertal|h|deu qad qks|deu|f;wedo sports|h|deu||s;Welt der Wunder|h|deu||d;wir24|h|deu||f;Xite Hits|h|eng||m;Xite R&B|h|eng||m;Alles was zählt|s|deu||f;Bauer sucht Frau|s|deu||f;Comedy Central|s|deu||f;Deluxe TV|s|deu||m;Disney Channel|s|deu||k;DMAX|s|deu||f;Ekin Türk|s|tur||f;Eurosport 1|s|deu eng||s;GEO Television|s|deu qaa||d;Goldstar TV|s|deu||m;Hund Katze Maus|s|deu||f;Kabel Eins|s|deu||f;Kabel Eins Doku|s|deu|deu|d;Melodie TV|s|deu||m;MTV|s|deu||m;N24 Doku|s|deu||d;Nickelodeon|s|deu||k;Nicktoons|s|deu eng||k;NITRO|s|deu|deu|f;ntv|s|deu||n;ProSieben|s|deu qde|deu|f;ProSieben MAXX|s|deu||f;RTL|s|deu qde|deu|f;RTL Comedy|s|deu||f;RTL Crime|s|deu qaa||f;RTL Haus & Garten|s|deu||d;RTL Living|s|deu qaa||f;RTL Passion|s|deu qaa||f;RTL Shine|s|deu||f;RTLup|s|deu||f;RTLZWEI|s|deu||f;SAT.1|s|deu qde|deu|f;SAT.1 GOLD|s|deu|deu|f;Schlager Deluxe|s|deu||m;Shopping Queen|s|deu||e;Showmax|s|tur||f;sixx|s|deu|deu|f;SPORT1|s|deu||s;Super RTL|s|deu|deu|k;TELE 5|s|deu||f;TLC|s|deu||f;Toggo plus|s|deu||k;TV5|s|tur||f;VOX|s|deu|deu|f;VOXup|s|deu||f;WELT|s|deu||n;wetter.com TV|s|deu||f;EXA Test 10|h|deu||f;EXA Test 11|h|deu||f;EXA Test 12|h|deu qde||f;EXA Test 13|h|deu||f;EXA Test 14|h|deu||f;EXA Test 15|h|deu||f;EXA Test 1|s|deu||f;EXA Test 2|h|deu||f;EXA Test 4|h|deu qde||f;EXA Test 5|h|deu||f;EXA Test 6|h|deu||f;EXA Test 8|h|deu qad qks qde||f;EXA Test 9|h|deu qde||f';
+
+const LABEL = { deu: 'Deutsch', qde: 'Deutsch (Dolby Audio)', qks: 'Deutsch (Klare Sprache)', qad: 'Deutsch (Audiodeskription)', qaa: 'Originalton', eng: 'Englisch', qen: 'Englisch (Dolby Audio)', fra: 'Französisch', tur: 'Türkisch', kur: 'Kurdisch', ara: 'Arabisch', zxx: 'Kein sprachlicher Inhalt' };
+const SUBLABEL = { deu: 'Deutsch', fra: 'Französisch' };
+const ORDER = ['deu', 'qde', 'qks', 'qad', 'qaa', 'eng', 'qen', 'fra', 'tur', 'kur', 'ara', 'zxx'];
+const LANG_OF = { qde: 'deu', qen: 'eng' };
+const LANGS = ['deu', 'eng', 'fra', 'qaa', 'tur', 'ara', 'kur'];
+const PREF_KEY = 'waipu-liveplayer-prototyp-b-prefs';
+function langOf(code) { return LANG_OF[code] || code; }
+
+const POOLS = {
+  f: [['Die Küstenwache von Hallig Nord', 'S2 F7 · Sturmwarnung', 'Serie · Krimi · D 2024 · ab 12'], ['Zwischen den Gleisen', 'Spielfilm', 'Spielfilm · Drama · D 2021 · ab 12'], ['Das Haus am Weinberg', 'S1 F3 · Neue Nachbarn', 'Serie · Familie · D 2023 · ab 6'], ['Nachtschicht im Revier 9', 'S4 F11 · Falsche Fährte', 'Serie · Krimi · D 2022 · ab 16'], ['Die große Backstube', 'Folge 5 · Das Finale', 'Show · Kochen · D 2025 · ab 0'], ['Fremde Spuren', 'Spielfilm', 'Spielfilm · Thriller · USA 2019 · ab 16'], ['Kanzlei Brandt', 'S3 F2 · Erbstreit', 'Serie · Drama · D 2023 · ab 12']],
+  d: [['Wilde Wasser des Nordens', 'F2 · Die Fjorde', 'Doku · Natur · D 2024 · ab 0'], ['Maschinen der Antike', 'F4 · Die Mühlen Roms', 'Doku · Geschichte · GB 2022 · ab 6'], ['Leben im Hochmoor', 'Dokumentation', 'Doku · Natur · D 2023 · ab 0'], ['Städte unter Druck', 'F1 · Hitze', 'Reportage · Gesellschaft · D 2025 · ab 6']],
+  n: [['Nachrichten am Nachmittag', 'Aktuelles aus aller Welt', 'Nachrichten · 2026 · ab 0'], ['Das Wirtschaftsmagazin', 'Märkte im Überblick', 'Magazin · Wirtschaft · 2026 · ab 0'], ['Im Gespräch', 'Interview', 'Talk · Politik · 2026 · ab 0']],
+  s: [['Live: Hallenfußball-Cup', 'Halbfinale', 'Sport · Fußball · Live · ab 0'], ['Motorsport kompakt', 'Die Highlights', 'Sport · Motorsport · ab 0'], ['Tennis: Herbst-Open', 'Viertelfinale', 'Sport · Tennis · Live · ab 0']],
+  m: [['Hits nonstop', 'Musikvideos', 'Musik · ab 0'], ['Die Charts der Woche', 'Countdown', 'Musik · Show · ab 0']],
+  k: [['Pip und die Wolkenbande', 'F12 · Der Regenbogenschlüssel', 'Kinder · Animation · ab 0'], ['Forscherkiste', 'F8 · Warum ist der Himmel blau?', 'Kinder · Wissen · ab 0']],
+  e: [['Shopping am Nachmittag', 'Haushalt & Küche', 'Shopping · ab 0'], ['Reisezeit', 'Angebote der Woche', 'Shopping · Reise · ab 0']]
+};
+
+function hashStr(s) { let x = 7; for (let i = 0; i < s.length; i++) { x = (x * 31 + s.charCodeAt(i)) >>> 0; } return x; }
+
+const CH = RAW.split(';').map((s, i) => {
+  const p = s.split('|');
+  const codes = p[2] ? p[2].split(' ') : [];
+  const subs = p[3] ? p[3].split(' ') : [];
+  const has = (c) => codes.indexOf(c) >= 0;
+  const tracks = ORDER.filter((c) => has(c))
+    .map((c) => ({ code: c, label: LABEL[c], lang: langOf(c), dolby: c === 'qde' || c === 'qen' }));
+  return { i, num: String(i + 1).padStart(3, '0'), name: p[0], hd: p[1] === 'h', codes, subs, tracks, cat: p[4] || 'f', seed: hashStr(p[0] + '#' + i) };
+});
+
+const FILTERS = [
+  ['Alle', () => true],
+  ['HD', (c) => c.hd],
+  ['Mit Untertiteln', (c) => c.subs.length > 0],
+  ['Audiodeskription', (c) => c.codes.indexOf('qad') >= 0],
+  ['Mehrsprachig', (c) => c.tracks.filter((t) => LANGS.indexOf(t.code) >= 0).length >= 2],
+  ['Dolby Audio', (c) => c.tracks.some((t) => t.dolby)],
+  ['Klare Sprache', (c) => c.codes.indexOf('qks') >= 0]
+];
+const FLISTS = FILTERS.map((f) => CH.filter(f[1]).map((c) => c.i));
+
+function pad2(n) { return String(n).padStart(2, '0'); }
+function hm(min) { const m = ((Math.floor(min) % 1440) + 1440) % 1440; return pad2(Math.floor(m / 60)) + ':' + pad2(m % 60); }
+
+function prog(c) {
+  const now = new Date();
+  const nm = now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60;
+  const off = (c.seed % 4) * 15;
+  const k = Math.floor((nm - off) / 60);
+  const start = k * 60 + off;
+  const pool = POOLS[c.cat] || POOLS.f;
+  const a = pool[(c.seed + k + 400) % pool.length];
+  const b = pool[(c.seed + k + 401) % pool.length];
+  return { title: a[0], sub: a[1], genre: a[2], next: b[0], start, end: start + 60, elapsed: nm - start };
+}
+
+function resolve(c, p) {
+  const a = c.tracks.find((t) => t.code === p.audio)
+    || c.tracks.find((t) => t.lang === langOf(p.audio))
+    || c.tracks.find((t) => t.code === 'deu')
+    || c.tracks.find((t) => t.code === 'qde')
+    || c.tracks[0] || { code: 'deu', label: 'Deutsch', lang: 'deu', dolby: false };
+  return { audio: a, sub: c.subs.indexOf(p.sub) >= 0 ? p.sub : 'off' };
+}
+
+const BSTYLE = {
+  plain: 'border: 2px solid rgba(255,255,255,0.8); background: transparent; color: #ffffff',
+  avail: 'border: 2px solid rgba(255,255,255,0.8); background: transparent; color: #ffffff',
+  active: 'border: 2px solid #ffffff; background: #ffffff; color: #0b1118'
+};
+const BWORD = { plain: '', avail: ' verfügbar', active: ' aktiv, Ihre Einstellung' };
+
+function badgesFor(c, p, r) {
+  const out = [];
+  const add = (label, st, full) => out.push({ label, css: BSTYLE[st], active: st === 'active', aria: (full || label) + BWORD[st] });
+  if (c.hd) add('HD', 'plain');
+  if (c.tracks.some((t) => t.dolby)) add('DD', 'avail', 'Dolby Audio');
+  if (c.subs.length) add('UT', 'avail', 'Untertitel');
+  if (c.codes.indexOf('qad') >= 0) add('AD', 'avail', 'Audiodeskription');
+  const langs = {};
+  c.tracks.forEach((t) => { if (LANGS.indexOf(t.lang) >= 0) langs[t.lang] = true; });
+  if (Object.keys(langs).length >= 2) add('Mehrsprachig', 'avail');
+  return out;
+}
+
+
+function thumbCss(seed, shift) { return 'background: hsl(' + ((seed + shift) % 360) + ', 28%, 30%)'; }
+
+const KEYS = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', ' ', 'Escape', 'Backspace', 'PageUp', 'PageDown'];
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const prefs = { audio: 'deu', sub: 'off' };
+    this.state = { ch: 0, stack: ['stream'], focus: 2, paused: false, pausePos: 0, shift: 0, rec: {}, info: false, fIdx: 0, lIdx: 0, col: 'list', aIdx: 0, prefs, toast: '' };
+  }
+
+  componentDidMount() { this.timer = setInterval(() => this.forceUpdate(), 20000); this.focusTimer = setTimeout(() => this.refocus(), 50); }
+  componentWillUnmount() { clearInterval(this.timer); clearTimeout(this.toastTimer); clearTimeout(this.zapTimer); clearTimeout(this.focusTimer); }
+
+  savePrefs(prefs) {
+    this.setState({ prefs });
+  }
+  say(text, sub, ms) {
+    clearTimeout(this.toastTimer);
+    this.setState({ toast: text, toastSub: sub || '' });
+    this.toastTimer = setTimeout(() => this.setState({ toast: '', toastSub: '' }), ms || 2600);
+  }
+  refocus() { if (this.root) { try { this.root.focus({ preventScroll: true }); } catch (e) {} } }
+  zap(d) {
+    const n = CH.length;
+    const ni = (this.state.ch + d + n) % n;
+    this.setState({ ch: ni, paused: false, shift: 0, info: false });
+    this.showZap();
+  }
+  tune(i) {
+    this.setState({ ch: i, paused: false, shift: 0, info: false, focus: 2 });
+    this.showZap();
+  }
+  topOf(s) { return s.stack[s.stack.length - 1]; }
+  armZap() {
+    clearTimeout(this.zapTimer);
+    this.zapTimer = setTimeout(() => { if (this.topOf(this.state) === 'zap') this.setState({ stack: ['stream'] }); }, 5000);
+  }
+  showZap() { this.setState({ stack: ['stream', 'zap'] }); this.armZap(); }
+  openControls() {
+    clearTimeout(this.zapTimer);
+    this.setState({ stack: this.state.stack.concat('controls'), focus: 2 });
+  }
+  back() {
+    clearTimeout(this.zapTimer);
+    const s = this.state;
+    if (s.stack.length <= 1) return;
+    const leaving = this.topOf(s);
+    const st = s.stack.slice(0, -1);
+    this.setState({ stack: st, info: leaving === 'controls' ? false : s.info });
+    if (st[st.length - 1] === 'zap') this.armZap();
+  }
+  playhead(s, pr) { return s.paused ? s.pausePos : Math.max(0, pr.elapsed - s.shift); }
+  press(k) { this.key({ key: k, preventDefault() {}, stopPropagation() {} }); this.refocus(); }
+  remoteHome() { clearTimeout(this.zapTimer); this.setState({ stack: ['stream'], info: false }); this.refocus(); }
+  remoteMenu() { if (this.topOf(this.state) !== 'controls') this.openControls(); this.refocus(); }
+  remotePlay() { const was = this.state.paused; this.act(2); this.say(was ? 'Wiedergabe' : 'Pausiert'); this.refocus(); }
+  seek(min) {
+    const s = this.state;
+    const pr = prog(CH[s.ch]);
+    const target = Math.max(0, Math.min(pr.elapsed, this.playhead(s, pr) - min));
+    if (s.paused) this.setState({ pausePos: target });
+    else this.setState({ shift: pr.elapsed - target });
+    this.say(min > 0 ? '− 5 Min.' : (target >= pr.elapsed ? 'Live' : '+ 5 Min.'));
+    this.refocus();
+  }
+
+  act(i) {
+    const s = this.state;
+    const c = CH[s.ch];
+    const pr = prog(c);
+    if (i === 0) {
+      const li = FLISTS[s.fIdx].indexOf(s.ch);
+      if (li < 0) this.setState({ fIdx: 0, lIdx: s.ch, col: 'list', stack: s.stack.concat('list') });
+      else this.setState({ lIdx: li, col: 'list', stack: s.stack.concat('list') });
+    } else if (i === 1) {
+      this.setState({ shift: pr.elapsed, paused: false });
+      this.say('Sendung läuft von Beginn');
+    } else if (i === 2) {
+      if (s.paused) this.setState({ paused: false, shift: Math.max(0, pr.elapsed - s.pausePos) });
+      else this.setState({ paused: true, pausePos: this.playhead(s, pr) });
+    } else if (i === 3) {
+      if (!s.paused && s.shift === 0) this.say('Läuft bereits live');
+      else { this.setState({ paused: false, shift: 0 }); this.say('Zurück zu Live'); }
+    } else if (i === 4) {
+      const rec = Object.assign({}, s.rec);
+      rec[s.ch] = !rec[s.ch];
+      this.setState({ rec });
+      this.say(rec[s.ch] ? 'Aufnahme gestartet' : 'Aufnahme gestoppt');
+    } else if (i === 5) {
+      const r = resolve(c, s.prefs);
+      this.setState({ stack: s.stack.concat('audio'), aIdx: Math.max(0, c.tracks.findIndex((t) => t.code === r.audio.code)) });
+    } else if (i === 6) {
+      this.setState({ stack: s.stack.concat('info') });
+    }
+  }
+
+  layerCount(c) { return c.tracks.length + 1 + c.subs.length; }
+
+  pick(idx) {
+    const s = this.state;
+    const c = CH[s.ch];
+    const p = Object.assign({}, s.prefs);
+    const nt = c.tracks.length;
+    if (idx < nt) p.audio = c.tracks[idx].code;
+    else { const j = idx - nt; p.sub = j === 0 ? 'off' : c.subs[j - 1]; }
+    this.savePrefs(p);
+    this.setState({ aIdx: idx });
+  }
+
+  key(e) {
+    const k = e.key;
+    if (KEYS.indexOf(k) < 0) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const s = this.state;
+    const ok = k === 'Enter' || k === ' ';
+    const back = k === 'Escape' || k === 'Backspace';
+    const top = this.topOf(s);
+    if (top === 'info') { if (back || ok) this.back(); return; }
+    if (top === 'list') {
+      const fl = FLISTS[s.fIdx];
+      if (back) { this.back(); return; }
+      if (s.col === 'filter') {
+        if (k === 'ArrowUp') this.setState({ fIdx: Math.max(0, s.fIdx - 1), lIdx: 0 });
+        else if (k === 'ArrowDown') this.setState({ fIdx: Math.min(FILTERS.length - 1, s.fIdx + 1), lIdx: 0 });
+        else if (k === 'ArrowRight' || ok) this.setState({ col: 'list' });
+        return;
+      }
+      if (k === 'ArrowUp' || k === 'PageUp') this.setState({ lIdx: Math.max(0, s.lIdx - (k === 'PageUp' ? 5 : 1)) });
+      else if (k === 'ArrowDown' || k === 'PageDown') this.setState({ lIdx: Math.min(fl.length - 1, s.lIdx + (k === 'PageDown' ? 5 : 1)) });
+      else if (k === 'ArrowLeft') this.setState({ col: 'filter' });
+      else if (ok) this.tune(fl[s.lIdx]);
+      return;
+    }
+    if (top === 'audio') {
+      const n = this.layerCount(CH[s.ch]);
+      if (back || k === 'ArrowLeft') { this.back(); return; }
+      if (k === 'ArrowUp') this.setState({ aIdx: Math.max(0, s.aIdx - 1) });
+      else if (k === 'ArrowDown') this.setState({ aIdx: Math.min(n - 1, s.aIdx + 1) });
+      else if (ok) this.pick(s.aIdx);
+      return;
+    }
+    if (k === 'ArrowUp' || k === 'PageUp') { this.zap(-1); return; }
+    if (k === 'ArrowDown' || k === 'PageDown') { this.zap(1); return; }
+    if (back) { this.back(); return; }
+    if (top !== 'controls') { if (ok) this.openControls(); return; }
+    if (k === 'ArrowLeft') this.setState({ focus: Math.max(0, s.focus - 1) });
+    else if (k === 'ArrowRight') this.setState({ focus: Math.min(6, s.focus + 1) });
+    else if (ok) this.act(s.focus);
+  }
+
+  renderVals() {
+    const accent = this.props.accent ?? '#4da3ff';
+    const s = this.state;
+    const c = CH[s.ch];
+    const p = s.prefs;
+    const r = resolve(c, p);
+    const pr = prog(c);
+    const ph = this.playhead(s, pr);
+    const pct = Math.max(0, Math.min(100, (ph / 60) * 100));
+    const live = !s.paused && s.shift === 0;
+    const top = this.topOf(s);
+    const inPlayer = top === 'controls';
+    const ctl = (i, label) => {
+      const f = inPlayer && s.focus === i;
+      return { bg: f ? '#ffffff' : 'transparent', fg: f ? '#0b1118' : '#ffffff', focused: f, label, click: () => { this.setState({ focus: i }); this.act(i); this.refocus(); } };
+    };
+    const recOn = !!s.rec[s.ch];
+
+    const fl = FLISTS[s.fIdx];
+    const start = Math.max(0, Math.min(s.lIdx - 1, fl.length - 5));
+    const rows = fl.slice(start, start + 5).map((ci, k) => {
+      const cc = CH[ci];
+      const pp = prog(cc);
+      const f = start + k === s.lIdx;
+      return {
+        num: cc.num, name: cc.name + (cc.hd ? '' : ' SD'), title: pp.title, sub: pp.sub, genre: pp.genre,
+        time: 'Seit ' + hm(pp.start) + ' Uhr · 60 Min.', next: pp.next, focused: f, plain: !f,
+        ring: f && s.col === 'list' ? '#ffffff' : 'rgba(255,255,255,0.3)',
+        thumb: thumbCss(cc.seed, 0), nextThumb: thumbCss(cc.seed, 140),
+        pct: Math.round(Math.max(0, Math.min(100, (pp.elapsed / 60) * 100))) + '%',
+        badges: badgesFor(cc, p, resolve(cc, p)),
+        aria: cc.num + ' ' + cc.name + ', jetzt: ' + pp.title,
+        pick: () => { this.tune(ci); this.refocus(); }
+      };
+    });
+    const filters = FILTERS.map((f, i) => ({
+      label: f[0], count: String(FLISTS[i].length),
+      bg: i === s.fIdx ? 'rgba(255,255,255,0.14)' : 'transparent',
+      ring: i === s.fIdx && s.col === 'filter' ? '#ffffff' : 'transparent',
+      weight: i === s.fIdx ? '700' : '400',
+      pick: () => { this.setState({ fIdx: i, lIdx: 0, col: 'list' }); this.refocus(); }
+    }));
+
+    const nt = c.tracks.length;
+    const ring = (i) => (s.aIdx === i ? '#ffffff' : 'transparent');
+    const weight = (i) => (s.aIdx === i ? '700' : '600');
+    const audioItems = c.tracks.map((t, j) => {
+      const cur = t.code === r.audio.code;
+      return { label: t.label, ring: ring(j), weight: weight(j), current: cur, pressed: cur ? 'true' : 'false', click: () => { this.pick(j); this.refocus(); } };
+    });
+    const subList = [{ code: 'off', label: 'Aus' }].concat(c.subs.map((x) => ({ code: x, label: SUBLABEL[x] || x })));
+    const subItems = subList.map((t, j) => {
+      const cur = t.code === r.sub;
+      return { label: t.label, ring: ring(nt + j), weight: weight(nt + j), current: cur, pressed: cur ? 'true' : 'false', click: () => { this.pick(nt + j); this.refocus(); } };
+    });
+
+    return {
+      accent,
+      rootRef: (el) => { this.root = el; },
+      onKey: (e) => this.key(e),
+      onEnter: () => this.refocus(),
+      rc: {
+        up: () => this.press('ArrowUp'), down: () => this.press('ArrowDown'),
+        left: () => this.press('ArrowLeft'), right: () => this.press('ArrowRight'),
+        ok: () => this.press('Enter'), back: () => this.press('Backspace'),
+        home: () => this.remoteHome(), menu: () => this.remoteMenu(), play: () => this.remotePlay(),
+        rew: () => this.seek(5), ff: () => this.seek(-5),
+        chUp: () => { this.zap(1); this.refocus(); }, chDown: () => { this.zap(-1); this.refocus(); }
+      },
+      videoBg: 'hsl(' + (c.seed % 360) + ', 22%, 17%)',
+      chNum: c.num, chName: c.name,
+      showOverlay: inPlayer, showZap: top === 'zap', showStream: top === 'stream' || top === 'zap', showList: top === 'list', showAudio: top === 'audio',
+      hideOverlay: () => { this.back(); this.refocus(); },
+      closeLayer: () => { this.back(); this.refocus(); },
+      openControlsClick: () => { this.openControls(); this.refocus(); },
+      hdrBadges: badgesFor(c, p, r),
+      title: pr.title, subtitle: pr.sub, genre: pr.genre,
+      timeLine: 'Seit ' + hm(pr.start) + ' Uhr · 60 Min. · Im Anschluss: ' + pr.next,
+      showInfo: s.info,
+      startTime: hm(pr.start), endTime: hm(pr.end), pct: pct.toFixed(1) + '%',
+      isPaused: s.paused, isPlaying: !s.paused,
+      c0: ctl(0, 'Senderliste'), c1: ctl(1, 'Von Beginn'), c2: ctl(2, s.paused ? 'Abspielen' : 'Pause'),
+      c3: ctl(3, live ? 'Live' : 'Zu Live'), c4: ctl(4, recOn ? 'Aufnahme stoppen' : 'Aufnehmen'),
+      c5: ctl(5, 'Audio & Untertitel'), c6: ctl(6, s.info ? 'Info ausblenden' : 'Info'),
+      liveFg: inPlayer && s.focus === 3 ? '#0b1118' : (live ? '#ffffff' : accent),
+      recR: recOn ? 7 : 4.5,
+      filters, rows,
+      audioItems, subItems,
+      hasToast: !!s.toast, toast: s.toast, hasToastSub: !!s.toastSub, toastSub: s.toastSub || ''
+    };
+  }
+}
+
+return Component;
+})();
+
+(function () {
+  const HOLE_ONLY = /^\s*\{\{\s*([\w.$]+)\s*\}\}\s*$/;
+  const HOLE = /\{\{\s*([\w.$]+)\s*\}\}/g;
+  const SKIP = { ref: 1, onkeydown: 1, onmouseenter: 1, tabindex: 1, 'hint-placeholder-val': 1, 'hint-placeholder-count': 1 };
+  const look = (scope, path) => path.split('.').reduce((o, k) => (o == null ? undefined : o[k]), scope);
+  function value(str, scope) {
+    const m = str.match(HOLE_ONLY);
+    if (m) return { raw: true, v: look(scope, m[1]) };
+    return { raw: false, v: str.replace(HOLE, (_, p) => { const x = look(scope, p); return x == null ? '' : String(x); }) };
+  }
+  function render(node, scope, out) {
+    if (node.nodeType === 3) { out.appendChild(document.createTextNode(value(node.nodeValue, scope).v)); return; }
+    if (node.nodeType !== 1) return;
+    const tag = node.localName;
+    if (tag === 'sc-if') {
+      const r = value(node.getAttribute('value') || '', scope);
+      if (r.v) node.childNodes.forEach((c) => render(c, scope, out));
+      return;
+    }
+    if (tag === 'sc-for') {
+      const list = value(node.getAttribute('list') || '', scope).v || [];
+      const as = node.getAttribute('as') || 'item';
+      list.forEach((item) => { const s = Object.create(scope); s[as] = item; node.childNodes.forEach((c) => render(c, s, out)); });
+      return;
+    }
+    const el = node.namespaceURI && node.namespaceURI !== 'http://www.w3.org/1999/xhtml'
+      ? document.createElementNS(node.namespaceURI, tag) : document.createElement(tag);
+    for (const a of Array.from(node.attributes)) {
+      const name = a.name;
+      if (SKIP[name]) continue;
+      const r = value(a.value, scope);
+      if (name === 'onclick') {
+        if (typeof r.v === 'function') { const fn = r.v; el.addEventListener('click', (e) => fn(e)); }
+        continue;
+      }
+      if (r.raw && (r.v === false || r.v == null)) continue;
+      el.setAttribute(name, String(r.v));
+    }
+    node.childNodes.forEach((c) => render(c, scope, el));
+    out.appendChild(el);
+  }
+
+  const landing = document.getElementById('landing');
+  const stageWrap = document.getElementById('stageWrap');
+  const stage = document.getElementById('stage');
+  const cards = document.getElementById('cards');
+  let active = null;
+
+  function fit() {
+    const s = Math.min(window.innerWidth / 2280, window.innerHeight / 1080);
+    stage.style.transform = 'translate(-50%, -50%) scale(' + s + ')';
+  }
+  window.addEventListener('resize', fit);
+
+  function start(n) {
+    const Comp = n === 1 ? P1 : P2;
+    const tpl = document.getElementById('tpl-' + n);
+    const inst = new Comp({ accent: '#4da3ff' });
+    const ctx = { inst, vals: null, last: n };
+    const extra = { exitProto: () => exit() };
+    const origBack = inst.back.bind(inst);
+    inst.back = () => {
+      const st = inst.state.stack || ['stream'];
+      if (st.length <= 1) { exit(); return; }
+      origBack();
+    };
+    let pending = false;
+    const draw = () => {
+      const vals = Object.assign({}, inst.renderVals(), extra);
+      const st = inst.state.stack || ['stream'];
+      if (st[st.length - 1] === 'info') { vals.showOverlay = true; vals.showInfoLayer = true; }
+      vals.closeInfo = () => inst.back();
+      ctx.vals = vals;
+      const frag = document.createDocumentFragment();
+      tpl.content.childNodes.forEach((c) => render(c, vals, frag));
+      stage.replaceChildren(frag);
+    };
+    inst.__schedule = () => {
+      if (pending) return;
+      pending = true;
+      requestAnimationFrame(() => { pending = false; if (active === ctx) draw(); });
+    };
+    active = ctx;
+    landing.style.display = 'none';
+    stageWrap.style.display = 'block';
+    fit();
+    draw();
+    if (inst.componentDidMount) inst.componentDidMount();
+    if (document.activeElement) document.activeElement.blur();
+  }
+
+  function exit() {
+    if (!active) return;
+    const n = active.last;
+    if (active.inst.componentWillUnmount) active.inst.componentWillUnmount();
+    active = null;
+    stage.replaceChildren();
+    stageWrap.style.display = 'none';
+    landing.style.display = 'flex';
+    const btn = cards.querySelector('[data-proto="' + n + '"]');
+    if (btn) btn.focus();
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (active) {
+      if (active.vals && active.vals.onKey) active.vals.onKey(e);
+      return;
+    }
+    const list = Array.from(cards.querySelectorAll('.card'));
+    const i = list.indexOf(document.activeElement);
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); list[Math.min(list.length - 1, i + 1)].focus(); }
+    else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); list[Math.max(0, i - 1)].focus(); }
+  });
+
+  cards.querySelectorAll('.card').forEach((b) => b.addEventListener('click', () => start(Number(b.dataset.proto))));
+  if (Math.random() < 0.5) cards.appendChild(cards.firstElementChild);
+  cards.querySelector('.card').focus();
+})();
+</script>
+</body>
+</html>
