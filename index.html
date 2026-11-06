@@ -8,34 +8,42 @@
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&amp;display=swap" rel="stylesheet">
 <style>
 html, body { margin: 0; height: 100%; background: #0b1118; color: #ffffff; font-family: 'Open Sans', Arial, Helvetica, sans-serif; overflow: hidden; }
-#landing { box-sizing: border-box; height: 100%; display: flex; align-items: center; justify-content: center; padding: 5vh 6vw; overflow-y: auto; }
-.wrap { width: 100%; max-width: 1240px; display: flex; flex-direction: column; gap: 40px; }
+#landing { box-sizing: border-box; height: 100%; display: flex; padding: 5vh 6vw; overflow-y: auto; }
+.wrap { width: 100%; max-width: 1240px; margin: auto; display: flex; flex-direction: column; gap: 40px; }
 .eyebrow { font-size: 18px; font-weight: 600; color: #7ab8ff; margin: 0 0 12px; }
 h1 { margin: 0; font-size: clamp(32px, 4vw, 52px); font-weight: 700; line-height: 1.15; }
-.lead { margin: 16px 0 0; max-width: 70ch; font-size: 20px; line-height: 1.6; color: #c3cdd8; }
-.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
-.card { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 120px; padding: 24px 32px; box-sizing: border-box; border: 3px solid #2a3846; border-radius: 14px; background: #151f2b; color: #ffffff; font-family: inherit; text-align: left; cursor: pointer; }
-.card:hover, .card:focus-visible { border-color: #ffffff; outline: none; }
+.lead { margin: 16px 0 0; max-width: 84ch; font-size: 20px; line-height: 1.6; color: #c3cdd8; }
+.cards { margin-top: 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
+.card { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 120px; padding: 24px 32px; box-sizing: border-box; border: 3px solid rgba(var(--c),0.45); border-radius: 14px; background: linear-gradient(rgba(var(--c),var(--a)), rgba(var(--c),var(--a))), #111419; color: #ffffff; font-family: inherit; text-align: left; cursor: pointer; }
+.card:hover, .card:focus-visible { border-color: rgb(var(--c)); background: linear-gradient(rgba(var(--c),var(--ah)), rgba(var(--c),var(--ah))), #111419; outline: none; }
 .card-title { font-size: clamp(26px, 2.6vw, 36px); font-weight: 700; }
-.pill { flex-shrink: 0; font-size: 18px; font-weight: 700; padding: 10px 24px; border-radius: 24px; border: 2px solid rgba(255,255,255,0.6); }
+.pill { flex-shrink: 0; font-size: 18px; font-weight: 700; padding: 10px 26px; border-radius: 24px; color: #ffffff; background: transparent; border: 2px solid rgba(255,255,255,0.6); }
 .card:hover .pill, .card:focus-visible .pill { background: #ffffff; color: #0b1118; border-color: #ffffff; }
-.tasks { border-radius: 14px; background: #151f2b; padding: 24px 32px; }
-.tasks h2 { margin: 0 0 12px; font-size: 22px; font-weight: 700; }
-.tasks ol { margin: 0; padding-left: 1.4em; font-size: 19px; line-height: 1.6; color: #d5dbe2; }
-.note { margin: 0; border-left: 4px solid #4da3ff; border-radius: 10px; background: #172338; padding: 20px 28px; font-size: 19px; line-height: 1.6; color: #d5dbe2; }
+.tasks { padding: 0; }
+.tasks h2 { margin: 0 0 12px; font-size: 18px; font-weight: 700; }
+.tasks ol { margin: 0; max-width: 84ch; padding-left: 1.4em; font-size: 19px; line-height: 1.6; color: #d5dbe2; }
+.note { box-sizing: border-box; max-width: 88ch; margin: 0; border-left: 4px solid #4da3ff; border-radius: 10px; background: #172338; padding: 20px 28px; font-size: 19px; line-height: 1.6; color: #d5dbe2; }
 .note strong { color: #ffffff; }
 .tasks ul { margin: 6px 0 4px; padding-left: 1.2em; }
+.usage { margin: -12px 0 0; }
+.usage h2 { margin: 0 0 12px; font-size: 18px; font-weight: 700; color: #ffffff; }
+.usage-grid { display: flex; flex-wrap: wrap; gap: 14px 64px; }
+.usage-grid > div { flex: 0 0 auto; }
+.usage-grid > div { display: flex; flex-direction: column; gap: 6px; font-size: 15px; line-height: 1.6; color: #c3cad3; }
+.u-label { font-size: 13px; font-weight: 700; color: #8e97a3; }
+kbd { display: inline-block; min-width: 1.5em; margin: 0 1px; padding: 0 6px; box-sizing: border-box; border: 1px solid rgba(255,255,255,0.28); border-bottom-width: 2px; border-radius: 5px; background: #151f2b; color: #ffffff; font-family: inherit; font-size: 13px; line-height: 1.6; text-align: center; }
+.sep { margin: -4px 0; border: 0; border-top: 1px solid rgba(255,255,255,0.12); }
 .feedback { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px 32px; border-radius: 14px; background: #151f2b; padding: 24px 32px; }
-.feedback p { margin: 0; max-width: 60ch; font-size: 19px; line-height: 1.6; color: #d5dbe2; }
+.feedback p { flex: 1 1 0; min-width: 260px; margin: 0; font-size: 19px; line-height: 1.6; color: #d5dbe2; }
 .feedback strong { color: #ffffff; }
-.cta { display: inline-flex; align-items: center; padding: 14px 30px; border: 2px solid #4d8fd9; border-radius: 30px; background: #1d4a86; color: #ffffff; font-size: 18px; font-weight: 700; text-decoration: none; }
+.cta { flex-shrink: 0; display: inline-flex; align-items: center; padding: 14px 30px; border: 2px solid #4d8fd9; border-radius: 30px; background: #1d4a86; color: #ffffff; font-size: 18px; font-weight: 700; text-decoration: none; }
 .cta:hover, .cta:focus-visible { background: #2558a0; outline: 3px solid #ffffff; outline-offset: 2px; }
 #stageWrap { position: fixed; inset: 0; display: none; background: #05080c; }
 #stage { position: absolute; left: 50%; top: 50%; width: 2280px; height: 1080px; transform-origin: center center; }
 #stageOverlay { position: absolute; left: 50%; top: 50%; width: 2280px; height: 1080px; transform-origin: center center; pointer-events: none; }
-#splash { position: absolute; left: 960px; top: 540px; transform: translate(-50%, -50%); display: flex; align-items: center; gap: 18px; padding: 20px 40px; border-radius: 44px; background: rgba(11,17,24,0.85); border: 1px solid rgba(255,255,255,0.15); white-space: nowrap; opacity: 0; transition: opacity 400ms ease; }
+#splash { position: absolute; left: 960px; top: 540px; transform: translate(-50%, -50%); display: flex; align-items: center; gap: 18px; padding: 20px 40px; border-radius: 44px; background: #0b1118; border: 2px solid rgba(255,255,255,0.15); box-shadow: 0 12px 40px rgba(0,0,0,0.45); white-space: nowrap; opacity: 0; transition: opacity 400ms ease; }
 #splash.show { opacity: 1; transition: opacity 250ms ease; }
-.splash-pre { font-size: 34px; color: #c3cad3; }
+.splash-pre { font-size: 34px; color: #e6e9ee; }
 .splash-name { font-size: 34px; font-weight: 700; color: #ffffff; }
 #stage ::-webkit-scrollbar { width: 0; height: 0; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
@@ -47,22 +55,31 @@ h1 { margin: 0; font-size: clamp(32px, 4vw, 52px); font-weight: 700; line-height
 <div>
 <p class="eyebrow">waipu.tv – Audio- und Untertiteleinstellungen</p>
 <h1>Deine Meinung zählt</h1>
-<p class="lead">Wir möchten die Einstellungen für Tonspuren und Untertitel im LiveTV verbessern und haben dafür zwei Varianten gebaut. Probiere beide aus und erzähl uns, wie sie sich für dich anfühlen. Das dauert etwa 10 Minuten. Es gibt kein Richtig oder Falsch: Wir testen die App, nicht dich.</p>
+<p class="lead">Wir möchten die Einstellungen für Audio und Untertitel im LiveTV verbessern und haben dafür zwei Varianten gebaut. Probiere beide aus und erzähl uns, wie sie sich für dich anfühlen. Das dauert etwa 10 Minuten. Es gibt kein Richtig oder Falsch: Wir testen die App, nicht dich.</p>
 </div>
-<p class="note"><strong>Bitte am Computer öffnen.</strong> Bedienen kannst du die Varianten mit der Fernbedienung am Bildschirmrand oder mit den Pfeiltasten, Enter und Backspace. Mit F11 (am Mac: Ctrl + Cmd + F) wechselst du in den Vollbildmodus. Zurück auf diese Seite kommst du über den Button „Startseite“ unter der Fernbedienung oder mit deren Home-Taste.</p>
+<p class="note"><strong>Bitte am Computer öffnen</strong> – am Smartphone funktioniert der Test leider nicht.</p>
 <section class="tasks" aria-labelledby="tasks-h">
 <h2 id="tasks-h">So geht’s:</h2>
 <ol>
 <li>Starte eine der beiden Varianten. Die Reihenfolge ist egal.</li>
-<li>Stell dir vor, du schaust ganz normal fern: Stelle Ton und Untertitel nach deinem Geschmack ein, wechsle ein paar Sender und achte darauf, wie die Kennzeichnungen neben dem Sendernamen und das Menü „Audio und Untertitel“ reagieren.</li>
+<li>Stell dir vor, du schaust ganz normal fern: Stelle Audio und Untertitel nach deinem Geschmack ein, wechsle ein paar Sender und achte darauf, wie die Kennzeichnungen neben dem Sendernamen und das Menü „Audio und Untertitel“ reagieren. Bild und Programm sind Platzhalter.</li>
 <li>Teste danach die andere Variante genauso.</li>
-<li>Erzähl uns im Feedbackformular, was dir aufgefallen ist.</li>
+<li>Erzähl uns im Feedbackformular (siehe Seitenende), was dir aufgefallen ist.</li>
 </ol>
 </section>
 <div class="cards" id="cards">
-<button type="button" class="card" data-proto="1"><span class="card-title" style="color: #b48cff">Variante Lila</span><span class="pill">Starten</span></button>
-<button type="button" class="card" data-proto="2"><span class="card-title" style="color: #f39a45">Variante Orange</span><span class="pill">Starten</span></button>
+<button type="button" class="card" data-proto="1" style="--c: 180,140,255; --a: 0.14; --ah: 0.22"><span class="card-title" style="color: #b48cff">Variante Lila</span><span class="pill">Starten</span></button>
+<button type="button" class="card" data-proto="2" style="--c: 243,154,69; --a: 0.13; --ah: 0.2"><span class="card-title" style="color: #f39a45">Variante Orange</span><span class="pill">Starten</span></button>
 </div>
+<section class="usage" aria-labelledby="usage-h">
+<h2 id="usage-h">Bedienung</h2>
+<div class="usage-grid">
+<div><span class="u-label">Navigieren · Auswählen · Zurück</span><span><kbd aria-label="Pfeil links">←</kbd><kbd aria-label="Pfeil hoch">↑</kbd><kbd aria-label="Pfeil rechts">→</kbd><kbd aria-label="Pfeil runter">↓</kbd> · <kbd>Enter</kbd> · <kbd>Backspace</kbd> oder Fernbedienung</span></div>
+<div><span class="u-label">Vollbild</span><span>Windows: <kbd>F11</kbd> · Mac: <kbd>Ctrl</kbd> <kbd>Cmd</kbd> <kbd>F</kbd></span></div>
+<div><span class="u-label">Zur Übersicht</span><span>„Startseite“ oder Home-Taste</span></div>
+</div>
+</section>
+<hr class="sep">
 <section class="feedback" aria-labelledby="fb-h">
 <p id="fb-h"><strong>Fertig mit beiden Varianten?</strong> Dann erzähl uns in unserem kurzen Formular (ca. 5 Minuten), was dir aufgefallen ist.</p>
 <a class="cta" href="https://forms.gle/tu94FU4XvJjAuQZh7" target="_blank" rel="noopener">Zum Feedbackformular</a>
@@ -1388,7 +1405,7 @@ return Component;
   const DESC = {"Die Küstenwache von Hallig Nord": "Ein Sturmtief zieht über die Nordsee. Während die Crew um Kapitänin Jensen einen manövrierunfähigen Kutter sichern muss, gerät ein Rettungseinsatz in der Nacht außer Kontrolle.", "Zwischen den Gleisen": "Nach zwanzig Jahren kehrt die Lokführerin Marlene in ihre Heimatstadt zurück. Am stillgelegten Bahnhof holt sie eine Begegnung ein, die sie längst verdrängt glaubte.", "Das Haus am Weinberg": "Familie Hoffmann hat sich gerade am Weinberg eingelebt, da ziehen nebenan neue Nachbarn ein – und die haben ganz eigene Pläne für das gemeinsame Grundstück.", "Nachtschicht im Revier 9": "Ein Einbruch in einer Juwelierwerkstatt scheint schnell geklärt. Doch Kommissarin Aydın misstraut dem Geständnis und folgt einer Spur, die tief in die eigenen Reihen führt.", "Die große Backstube": "Im Finale treten die drei besten Hobbybäckerinnen und -bäcker gegeneinander an. Ihre letzte Aufgabe: eine dreistöckige Torte zum Thema „Heimat“.", "Fremde Spuren": "Ein Gerichtsmediziner entdeckt an einem scheinbar natürlichen Todesfall Ungereimtheiten. Als er nachforscht, wird er selbst zur Zielscheibe.", "Kanzlei Brandt": "Ein Testament spaltet eine Unternehmerfamilie. Anwältin Brandt soll vermitteln – und stößt auf eine Klausel, die alles infrage stellt.", "Wilde Wasser des Nordens": "Die Reise führt entlang der norwegischen Fjorde, wo Schmelzwasser, Gezeiten und Wind eine einzigartige Landschaft formen. Seeadler und Schweinswale sind hier zu Hause.", "Maschinen der Antike": "Wie mahlten die Römer ihr Getreide in großem Stil? Archäologen rekonstruieren eine Mühlenanlage und zeigen, wie viel Ingenieurskunst in ihr steckte.", "Leben im Hochmoor": "Ein Jahr im Hochmoor: Zwischen Torfmoos und Wollgras leben Arten, die anderswo kaum noch vorkommen. Die Dokumentation begleitet ein Renaturierungsprojekt.", "Städte unter Druck": "Hitzesommer stellen Großstädte vor neue Probleme. Die Reportage zeigt, wie Planerinnen und Planer mit Grünflächen, Wasser und Schatten gegensteuern.", "Nachrichten am Nachmittag": "Aktuelle Meldungen aus Deutschland und der Welt, dazu Hintergründe, Wirtschaft und das Wetter.", "Das Wirtschaftsmagazin": "Die Börsen im Überblick, ein Blick auf den Energiemarkt und ein Gespräch über die Zukunft des Einzelhandels.", "Im Gespräch": "Ein ausführliches Interview zu den politischen Themen der Woche – mit Fragen der Zuschauerinnen und Zuschauer.", "Live: Hallenfußball-Cup": "Halbfinale beim traditionellen Hallenturnier. Vier Mannschaften kämpfen um den Einzug ins Finale am Abend.", "Motorsport kompakt": "Die Höhepunkte des Rennwochenendes: Überholmanöver, Boxenstopps und Stimmen aus dem Fahrerlager.", "Tennis: Herbst-Open": "Viertelfinale beim Hallenturnier – mit zwei Partien in voller Länge und Analysen zwischen den Sätzen.", "Hits nonstop": "Die aktuellen Musikvideos aus Pop, Dance und Hip-Hop – ohne Unterbrechung.", "Die Charts der Woche": "Der Countdown der beliebtesten Songs, mit Neueinsteigern und den Aufsteigern der Woche.", "Pip und die Wolkenbande": "Pip findet einen Schlüssel aus Regenbogenlicht. Gemeinsam mit der Wolkenbande macht sie sich auf die Suche nach dem passenden Schloss.", "Forscherkiste": "Warum ist der Himmel blau? Mit einfachen Experimenten zeigen Lea und Jonas, was mit dem Sonnenlicht in der Luft passiert.", "Shopping am Nachmittag": "Praktisches für Haushalt und Küche, live vorgestellt – mit Tipps zur Anwendung und Pflege.", "Reisezeit": "Die Reiseangebote der Woche: Städtetrips, Wellnesswochenenden und ein Abstecher an die Ostsee."};
   let idleTimer = null;
   const IDLE_MS = 6000;
-  const META = { 1: { name: 'Variante Lila', color: '#b48cff' }, 2: { name: 'Variante Orange', color: '#f39a45' } };
+  const META = { 1: { name: 'Variante Lila', color: '#b48cff', rgb: '180,140,255' }, 2: { name: 'Variante Orange', color: '#f39a45', rgb: '243,154,69' } };
   const baseTitle = document.title;
   const splash = document.getElementById('splash');
   const splashName = document.getElementById('splashName');
@@ -1458,6 +1475,8 @@ return Component;
     document.title = meta.name + ' – waipu.tv Test';
     splashName.textContent = meta.name;
     splashName.style.color = meta.color;
+    splash.style.background = 'linear-gradient(rgba(' + meta.rgb + ',0.22), rgba(' + meta.rgb + ',0.22)), #0b1118';
+    splash.style.borderColor = 'rgba(' + meta.rgb + ',0.65)';
     splash.classList.add('show');
     clearTimeout(splashTimer);
     splashTimer = setTimeout(() => splash.classList.remove('show'), 2800);
