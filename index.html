@@ -328,7 +328,7 @@ Senderliste
 Verfügbar</span>
 <span style="display: flex; align-items: center; gap: 10px; font-size: 18px; color: #c9d1da">
 <span style="display: inline-flex; align-items: center; height: 28px; padding: 0 8px; box-sizing: border-box; border: 2px solid #ffffff; background: #ffffff; border-radius: 4px; font-size: 15px; font-weight: 700; color: #0b1118">UT</span>
-Ihre Einstellung ist aktiv</span>
+Aktiv</span>
 </div>
 <p style="margin: 0; font-size: 16px; line-height: 1.45; color: #aab5c1">DD = Dolby Audio · UT = Untertitel · AD = Audiodeskription · Mehrsprachig = weitere Tonsprachen</p>
 </div>
@@ -744,12 +744,12 @@ const BSTYLE = {
   avail: 'border: 2px solid rgba(255,255,255,0.8); background: transparent; color: #ffffff',
   active: 'border: 2px solid #ffffff; background: #ffffff; color: #0b1118'
 };
-const BWORD = { plain: '', avail: ' verfügbar', active: ' aktiv, Ihre Einstellung' };
+const BWORD = { plain: '', avail: ' verfügbar', active: ' aktiv' };
 
 function badgesFor(c, p, r) {
   const out = [];
   const add = (label, st, full) => out.push({ label, css: BSTYLE[st], active: st === 'active', aria: (full || label) + BWORD[st] });
-  if (c.hd) add('HD', 'plain');
+  if (c.hd) out.push({ label: 'HD', css: BSTYLE.active, active: true, aria: 'HD, wird in HD abgespielt' });
   if (c.tracks.some((t) => t.dolby)) add('DD', r.dolbyOn ? 'active' : 'avail', 'Dolby Audio');
   if (c.subs.length) add('UT', r.sub !== 'off' ? 'active' : 'avail', 'Untertitel');
   if (c.codes.indexOf('qad') >= 0) add('AD', r.audio.code === 'qad' ? 'active' : 'avail', 'Audiodeskription');
